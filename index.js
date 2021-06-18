@@ -87,8 +87,10 @@ socket.onmessage = event => {
 
     // Titulo Cancion
     if (tempTitle !== data.menu.bm.metadata.artist + ' - ' + data.menu.bm.metadata.title) {
+        output.style.fontSize = '30px';
         tempTitle = data.menu.bm.metadata.artist + ' - ' + data.menu.bm.metadata.title;
         title.innerHTML = tempTitle
+        resize_to_fit()
     }
 
     // CS
