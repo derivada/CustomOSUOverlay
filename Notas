@@ -1,0 +1,44 @@
+LIBRERIAS USADAS:
+
+
+1. ODOMETER
+
+https://github.hubspot.com/odometer/docs/welcome/
+odometr.js es para transiciones de números
+
+<link rel="stylesheet" href="odometer-theme-car.css" />
+<script src="odometer.js"></script>
+
+Any element with class name "odometer" will automatically be made into an Odometer! When you want to update the value, simply update it the same way you normally would.
+
+element.innerHTML = 123 // Native, or...
+$('.odometer').html(123) // with jQuery
+
+
+2. RECONNECTING WEB SOCKET
+
+https://github.com/joewalnes/reconnecting-websocket
+reconnecting-websocket.js es para el socket
+" A small decorator for the JavaScript WebSocket API that automatically reconnects "
+With a ReconnectingWebSocket, after an onclose event is called it will automatically attempt to reconnect. 
+In addition, a connection is attempted repeatedly (with a small pause) until it succeeds.
+So the events you receive may look something more like:
+onopen
+onmessage
+onmessage
+onmessage
+onclose
+// ReconnectingWebSocket attempts to reconnect
+onopen
+onmessage
+onmessage
+onmessage
+onclose
+// ReconnectingWebSocket attempts to reconnect
+onopen
+onmessage
+onmessage
+onmessage
+onclose
+
+var socket = new ReconnectingWebSocket(url, protocols, options);
