@@ -3,7 +3,9 @@ html {
     padding: 0;
     margin: 0;
     overflow-x: hidden;
+    overflow-y: hidden;
 }
+
 
 #main {
     font-size: 20px;
@@ -16,6 +18,7 @@ html {
     -moz-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     -ms-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     -o-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     margin: 20px;
 }
 
@@ -158,36 +161,74 @@ html {
 #accSection {
     display: flex;
     width: 450px;
-    height: 100px;
+    height: 200px;
+    padding: 10px;
     flex-wrap: wrap;
+    background-color: rgb(20, 20, 20);
+    color: rgb(207, 207, 207);
+    z-index: -1;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: #36849C;
+    border-width: 5px;
 }
 
 #accuracy {
-    width: 100px;
-    height: 50px;
-    vertical-align: baseline;
+    display: flex;
+    width: 90px;
+    height: 140px;
     font-size: 20px;
-    color: black;
+    flex-direction: column;
+    padding: 5px;
+    justify-content: center;
+    
+}
+
+#accText {
+    margin-top: 100%;
 }
 
 #graph {
     width: 350px;
-    height: 50px;
-    color: black;
+    height: 155px;
+    fill:rgb(223, 0, 0);
+}
 
+#srchart {
+    transform: translate(5px, 0px);
+
+    width: 350px;
+    height: 150px;
+}
+
+#graph>hr {
+
+    width: 350px;
+    height: 2px;
+    border: none;
+    margin: 0px;
+    border-radius: 5px;
+    background-color: #36849C;
+}
+
+#graph {
+    width: 350px;
+    height: 150px;
 }
 
 #grade {
-    width: 100px;
-    height: 50px;
-    color: black;
+    width: 90px;
+    height: 140px;
+    padding: 5px;
+    margin-top: 12.5px;
+    font-size: 30px;
+    color: #e0e0e0;
+    box-shadow: "0 0 0.5rem #e0e0e0";
 }
 
 #hits {
     width: 350px;
     height: 50px;
-    background-color: #171717;
-    z-index: -1;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     text-align: center;
@@ -246,15 +287,18 @@ html {
     -moz-filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
     -ms-filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
     -o-filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
+    filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
 }
 
 .text {
     display: flex;
     justify-content: center;
 }
-#pp{
+
+#pp {
     top: 60%;
 }
+
 #ppCounter {
     position: absolute;
     height: 75px;

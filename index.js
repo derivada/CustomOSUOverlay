@@ -91,6 +91,12 @@ let accValue
 let strainsValues
 let modsValues
 
+
+let completion = 0
+let completionTemp = 0
+let mapTime
+let lastTime
+
 // Initialize Star Rating chart
 let SRChart
 createChart()
@@ -126,6 +132,22 @@ socket.onmessage = event => {
             refreshChart(strainsValues)
         }
     }
+
+    // Time Management
+    if (mapTime !== map.time.mp3) {
+        mapTime = map.time.mp3
+    }
+    if (lastTime !== map.time.current) {
+        lastTime = map.time.current
+        completionTemp = parseFloat((lastTime / mapTime).toFixed(3))
+        if (completionTemp > 1.0)
+            completionTemp = 1.0
+        if (completionTemp !== completion) {
+            completion = completionTemp
+            SRChart.update()
+        }
+    }
+
 
     // Background image
     if (imgValue !== map.path.full) {
@@ -332,43 +354,64 @@ function updateGradeStyle(hitGrade, hdfl) {
 // Create the SR chart
 function createChart() {
     // Dataset properties
+
     let data = {
         labels: [1, 2, 3],
         datasets: [{
             label: 'SR',
-            backgroundColor: 'rgba(50, 50, 0, 0.2)',
-            borderColor: 'rgba(50, 50, 0, 0.6)',
+            backgroundColor: function (context) {
+                const chart = context.chart;
+                const {
+                    ctx,
+                    chartArea
+                } = chart;
+
+                if (!chartArea) {
+                    // This case happens on initial chart load
+                    return null;
+                }
+                return getGradient(ctx, chartArea);
+            },
+            borderColor: 'rgba(230, 230, 230, 0.6)',
             data: [1, 2, 3],
             fill: true,
 
         }]
     }
 
+
+
     // Config
     let config = {
         type: 'line',
         data: data,
         options: {
+            interaction: {
+                intersect: false
+            },
             elements: {
                 point: {
                     radius: 0,
                 },
                 line: {
-                    cubicInterpolationMode: 'monotone',
-                    borderWidth: 2
+                    borderWidth: 0
                 }
             },
             plugins: {
+                tooltip: {
+                    enabled: false,
+                },
                 legend: {
                     display: false,
                 }
             },
             scales: {
                 x: {
+                    type: 'linear',
                     display: false,
                 },
                 y: {
-                    display: true,
+                    display: false,
                 }
             },
 
@@ -385,7 +428,7 @@ function createChart() {
 // Refresh the SR Chart 
 function refreshChart(values) {
 
-    // Trim 0s from the array
+    // Trim 0s from the array ends
     let i = 0,
         j = values.length - 1;
     while (values[i] === 0 || values[j] === 0) {
@@ -396,8 +439,15 @@ function refreshChart(values) {
     }
 
     let valuesTrim = []
-    for (let k = 0; k < j - i; k++) {
+
+    let k
+
+    for (k = 0; k < j - i; k++) {
         valuesTrim[k] = values[k + i]
+    }
+
+    for (k; k < values.length - i; k++) {
+        valuesTrim[k] = 5
     }
 
     let labels = []
@@ -407,7 +457,29 @@ function refreshChart(values) {
 
     SRChart.data.labels = labels
     SRChart.data.datasets.forEach((dataset) => {
+
         dataset.data = valuesTrim
     })
     SRChart.update()
+}
+
+
+
+
+function getGradient(ctx, chartArea) {
+    let width, height, gradient
+    const chartWidth = chartArea.right - chartArea.left;
+    const chartHeight = chartArea.bottom - chartArea.top;
+    if (gradient === null || width !== chartWidth || height !== chartHeight) {
+        // Create the gradient because this is either the first render
+        // or the size of the chart has changed
+        width = chartWidth;
+        height = chartHeight;
+        gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+        gradient.addColorStop(0, 'rgba(230, 230, 230, 0.5)')
+        gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.5)')
+        gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.2)')
+        gradient.addColorStop(1, 'rgba(230, 230, 230, 0.2)')
+    }
+    return gradient
 }
