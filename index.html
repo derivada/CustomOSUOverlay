@@ -9,22 +9,13 @@
 
 <body>
     <div id="main">
-        <div id="target">
+        <!-- <div id="song_square">
             <img src="" id="bg">
             <div id="bgDark"></div>
-            <div id="title"></div>
-            <div class="text currentPP">
-                <div>
-                    PP: 
-                </div>
-                <div id="currentPP" class="odometer"></div>
-            </div>
-            <div class="text ifFC">
-                <div>
-                    FC: 
-                </div>
-                <div id="ifFC" class="odometer"></div>
-            </div>
+            <span id="title"></span>
+            <span id="diff"></span>
+            <div id="sr" class="text smallinfo"></div>
+
             <div id="mapStatus">
                 <div id="cs" class="status">
                     <hr>
@@ -41,42 +32,61 @@
             </div>
             <div id="mods">
             </div>
+        </div> -->
+        <div id="accSection">
+            <div id="accuracy">
+                <div id="acc" class="odometer text">100</div>
+                %
+            </div>
+            <div>
+                <canvas id="srchart"></canvas>
+            </div>
+            <div id="grade"></div>
+            <div id="hits">
+                <div id="hits100">
+                    <div id="100" class="odometer text"></div>
+                    <hr>
+                </div>
+                <div id="hits50">
+                    <div id="50" class="odometer text"></div>
+                    <hr>
+                </div>
+                <div id="hitsMiss">
+                    <div id="miss" class="odometer text"></div>
+                    <hr>
+                </div>
+                <div id="hitsSb">
+                    <div id="sb" class="odometer text"></div>
+                    <hr>
+                </div>
+            </div>
         </div>
-        <div id="state">
-            <div class="text">
-                <div id="100" class="odometer"></div>
-                <div>
-                    x100
-                </div>
+        <!-- <div id="pp">
+            <div id="pp-title">PP</div>
+            <div id="current">
+                <span>Current</span>
+                <span id="currentPP"></span>
             </div>
-            <div class="text">
-                <div id="50" class="odometer"></div>
-                <div>
-                    x50
-                </div>
+            <div id="fc">
+                <span>Current</span>
+                <span id="fcPP"></span>
             </div>
-            <div class="text">
-                <div id="miss" class="odometer"></div>
-                <div>
-                    xMiss
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="deps/odometr.js"></script>
-    <script src="deps/reconnecting-websocket.min.js"></script>
-    <script defer>
-        {
-            let el = document.getElementById('100');
-            od = new Odometer({
-                el: el,
-                format: 'd',
-            });
-        }
-    </script>
-    <script src="adjustfontsize.js"></script>
-    <script src="index.js"></script>
+        </div> -->
 
+        <script src="deps/odometr.js"></script>
+        <script src="deps/reconnecting-websocket.min.js"></script>
+        <script src="deps/chart.min.js"></script>
+        <script defer>
+            {
+                let el = document.getElementById('100');
+                od = new Odometer({
+                    el: el,
+                    format: 'd',
+                });
+            }
+        </script>
+        <script src="adjustfontsize.js"></script>
+        <script src="index.js"></script>
 </body>
 
 </html>

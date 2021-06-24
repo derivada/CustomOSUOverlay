@@ -1,6 +1,6 @@
 // https://stackoverflow.com/questions/18229230/dynamically-changing-the-size-of-font-size-based-on-text-length-using-css-and-ht
 const output = document.querySelector('#title');
-const outputContainer = document.querySelector('#target');
+const outputContainer = document.querySelector('#song_square');
 const defaultSize = '30px';
 
 function resize_to_fit() {
