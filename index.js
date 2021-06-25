@@ -41,6 +41,7 @@ let hp = document.getElementById("hp")
 let mods = document.getElementById("mods")
 let sr = document.getElementById("sr")
 let fcPP = document.getElementById("fcPP")
+let accBG = document.getElementById("accBG")
 
 // Play data
 let currentPP = document.getElementById("currentPP")
@@ -134,8 +135,8 @@ socket.onmessage = event => {
     }
 
     // Time Management
-    if (mapTime !== map.time.mp3) {
-        mapTime = map.time.mp3
+    if (mapTime !== map.time.full - map.time.firstObj) {
+        mapTime = map.time.full - map.time.firstObj
     }
     if (lastTime !== map.time.current) {
         lastTime = map.time.current
@@ -155,7 +156,7 @@ socket.onmessage = event => {
         let img = map.path.full.replace(/#/g, '%23').replace(/%/g, '%25')
 
         // Not sure what the ?a= part is doing
-        //bg.setAttribute('src', `http://127.0.0.1:24050/Songs/${img}?a=${Math.random(10000)}`)
+        accBG.setAttribute('src', `http://127.0.0.1:24050/Songs/${img}?a=${Math.random(10000)}`)
     }
 
     // Song title
@@ -409,6 +410,9 @@ function createChart() {
                 x: {
                     type: 'linear',
                     display: false,
+                    ticks: {
+                        stepSize: 1
+                      }
                 },
                 y: {
                     display: false,
@@ -437,49 +441,30 @@ function refreshChart(values) {
         if (values[j] === 0)
             j--;
     }
-
+    let len = j-i
     let valuesTrim = []
-
-    let k
-
-    for (k = 0; k < j - i; k++) {
-        valuesTrim[k] = values[k + i]
-    }
-
-    for (k; k < values.length - i; k++) {
-        valuesTrim[k] = 5
-    }
-
     let labels = []
-    for (let k = 0; k <= valuesTrim.length; k++) {
+
+    for (let k = 0; k < len; k++) {
+        valuesTrim[k] = values[k + i]
         labels[k] = k
     }
 
     SRChart.data.labels = labels
     SRChart.data.datasets.forEach((dataset) => {
-
         dataset.data = valuesTrim
     })
+
     SRChart.update()
 }
 
 
 
-
 function getGradient(ctx, chartArea) {
-    let width, height, gradient
-    const chartWidth = chartArea.right - chartArea.left;
-    const chartHeight = chartArea.bottom - chartArea.top;
-    if (gradient === null || width !== chartWidth || height !== chartHeight) {
-        // Create the gradient because this is either the first render
-        // or the size of the chart has changed
-        width = chartWidth;
-        height = chartHeight;
-        gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-        gradient.addColorStop(0, 'rgba(230, 230, 230, 0.5)')
-        gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.5)')
-        gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.2)')
-        gradient.addColorStop(1, 'rgba(230, 230, 230, 0.2)')
-    }
+    let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+    gradient.addColorStop(0, 'rgba(230, 230, 230, 0.5)')
+    gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.5)')
+    gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.2)')
+    gradient.addColorStop(1, 'rgba(230, 230, 230, 0.2)')
     return gradient
 }
