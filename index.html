@@ -37,8 +37,7 @@
             <img id="accBG" class="bgImage"></img>
             <div id="accuracy">
                 <span id="accText">
-                    <div id="acc" class="odometer text">100</div>
-                    %
+                    <div id="acc">100</div>
                 </span>
             </div>
             <div id="graph">
@@ -65,6 +64,11 @@
                 </div>
             </div>
         </div>
+        <div id="urSection">
+            <span id="ur"></span>
+            <span id="urText">Unstable Rate</span>
+        </div>
+
         <!-- <div id="pp">
             <div id="pp-title">PP</div>
             <div id="current">
@@ -80,6 +84,7 @@
         <script src="deps/odometr.js"></script>
         <script src="deps/reconnecting-websocket.min.js"></script>
         <script src="deps/chart.min.js"></script>
+        <script src="deps/countUp.js"></script>
         <script defer>
             {
                 let el = document.getElementById('100');

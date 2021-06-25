@@ -53,6 +53,25 @@ let sb = document.getElementById("sb")
 let ur = document.getElementById("ur")
 let grade = document.getElementById("grade")
 let acc = document.getElementById("acc")
+let accAnimation = {
+    acc: new CountUp('acc', 0, 100, 2, 0.1, {
+        decimalPlaces: 2,
+        useEasing: false,
+        useGrouping: false,
+        separator: " ",
+        decimal: ".",
+        suffix: " %"
+    }),
+};
+
+let urAnimation = {
+    ur: new CountUp('ur', 0, 100, 0, 1, {
+        decimalPlaces: 2,
+        useEasing: true,
+        useGrouping: false,
+        separator: " "
+        }),
+}
 
 // Mod Icons
 const modsImgs = {
@@ -88,6 +107,7 @@ let stateValue
 let diffValue
 let gradeValue
 let accValue
+let urValue
 
 let strainsValues
 let modsValues
@@ -261,8 +281,16 @@ socket.onmessage = event => {
     // Accuracy
     if (data.gameplay.accuracy !== accValue) {
         accValue = data.gameplay.accuracy
-        acc.innerHTML = Math.round(accValue * 100) / 100
+        accAnimation.acc.update(accValue)
     }
+
+    // UR
+    if (data.gameplay.hits.unstableRate != '') {
+        urAnimation.ur.update(data.gameplay.hits.unstableRate)
+    } else {
+        urAnimation.ur.update(0)
+    }
+
 
     // Mods
     /*
@@ -412,7 +440,7 @@ function createChart() {
                     display: false,
                     ticks: {
                         stepSize: 1
-                      }
+                    }
                 },
                 y: {
                     display: false,
@@ -441,7 +469,7 @@ function refreshChart(values) {
         if (values[j] === 0)
             j--;
     }
-    let len = j-i
+    let len = j - i
     let valuesTrim = []
     let labels = []
 
@@ -463,8 +491,8 @@ function refreshChart(values) {
 function getGradient(ctx, chartArea) {
     let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
     gradient.addColorStop(0, 'rgba(230, 230, 230, 0.5)')
-    gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.5)')
-    gradient.addColorStop(completion, 'rgba(230, 230, 230, 0.2)')
+    gradient.addColorStop(Math.min(completion, 1), 'rgba(230, 230, 230, 0.5)')
+    gradient.addColorStop(Math.min(completion, 1), 'rgba(230, 230, 230, 0.2)')
     gradient.addColorStop(1, 'rgba(230, 230, 230, 0.2)')
     return gradient
 }
