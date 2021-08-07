@@ -10,9 +10,9 @@ html {
 
 #main {
     /* uncommented for debugging */
-     background: black; 
     background: black;
-     background: black; 
+    background: black;
+    background: black;
     display: grid;
     grid-template-rows: 63px 1363px auto;
     grid-template-columns: 408px 1745px auto;
@@ -34,9 +34,9 @@ html {
 /* The area where the game is played, don't put any overlay over this */
 #gamearea {
     /* uncommented for debugging */
-     background: red; 
     background: red;
-     background: red; 
+    background: red;
+    background: red;
     grid-column: 2;
     grid-row: 2;
     opacity: 20%;
@@ -169,6 +169,61 @@ html {
     box-shadow: 0 0 5px rgb(255, 255, 255);
 }
 
+/* PP and Combo Section */
+#ppComboSection {
+    color: #e0e0e0;
+    grid-column: 1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 70px;
+    margin: auto 20px auto auto;
+    transform: translate(0px, 145px);
+    width: 350px;
+    height: 50px;
+    font-weight: 500;
+
+}
+
+#ppComboSection>div {
+    text-align: center;
+    font-size: 25px;
+    background-color: rgba(50, 50, 100, 0.4);
+    border: #10637c;
+    border-radius: 10px;
+    border-style: solid 5px;
+    display: grid;
+}
+
+/* overlap stuff in the center (for the upwards glow effect) */
+#ppComboSection>div>* {
+    grid-column-start: 1;
+    grid-row-start: 1;
+    margin: auto;
+}
+
+#ppComboSection hr {
+    width: 100px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    border-top: 3px;
+    text-align: center;
+    border-top: solid rgb(200, 200, 200);
+    box-shadow: 0 0px 10px rgb(255, 255, 255);
+}
+
+.upwardsGlow {
+    /* go a bit up when we update, go super low if combo break / miss */
+    opacity: 30%; 
+    
+    z-index: -1;
+    width: 95px;
+    height: 40px;
+    background-image: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.7));
+    filter: blur(2px);
+}
+
+
 /* Unstable Rate (UR) Bottom Display */
 #urSection {
     grid-column: 2;
@@ -209,7 +264,7 @@ html {
     font-size: 50px;
     text-align: center;
     display: grid;
-    grid-template-rows: 1fr 1fr;   
+    grid-template-rows: 1fr 1fr;
 }
 
 .key {
@@ -250,18 +305,4 @@ html {
 .text {
     display: flex;
     justify-content: center;
-}
-
-#pp {
-    top: 60%;
-}
-
-#ppCounter {
-    position: absolute;
-    height: 75px;
-    width: 450px;
-    top: 70%;
-    -webkit-mask-image: url(../static/mask_pp.svg);
-    mask-image: url(../static/mask_pp.svg);
-    display: grid;
 }

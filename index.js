@@ -43,8 +43,9 @@ let sr = document.getElementById("sr")
 let fcPP = document.getElementById("fcPP")
 let accBG = document.getElementById("accBG")
 
-// Play data
-let currentPP = document.getElementById("currentPP")
+// Acc section counters
+
+
 let threehun = document.getElementById("300")
 let hun = document.getElementById("100")
 let fifty = document.getElementById("50")
@@ -53,6 +54,12 @@ let sb = document.getElementById("sb")
 let ur = document.getElementById("ur")
 let grade = document.getElementById("grade")
 let acc = document.getElementById("acc")
+
+// PP and Combo section counters
+let pp = document.getElementById("pp")
+let combo = document.getElementById("combo")
+
+// CountUp animation objects
 let accAnimation = {
     acc: new CountUp('acc', 0, 100, 2, 0.1, {
         decimalPlaces: 2,
@@ -70,6 +77,26 @@ let urAnimation = {
         useEasing: true,
         useGrouping: false,
         separator: " "
+    }),
+}
+
+let ppAnimation = {
+    pp: new CountUp('pp', 0, 100, 0, 1, {
+        decimalPlaces: 2,
+        useEasing: true,
+        useGrouping: false,
+        separator: " ",
+        suffix: "pp"
+    }),
+}
+
+let comboAnimation = {
+    combo: new CountUp('combo', 0, 100, 0, 1, {
+        decimalPlaces: 2,
+        useEasing: true,
+        useGrouping: false,
+        separator: " ",
+        suffix: "x"
     }),
 }
 
@@ -116,6 +143,8 @@ let gradeValue
 let accValue
 let urValue
 
+let ppValue
+let comboValue
 let strainsValues
 let modsValues
 
@@ -243,27 +272,32 @@ socket.onmessage = event => {
         //hp.innerHTML = Math.round(hpValue * 10) / 10
     }
 
-    // PP if FC
+    /* PP if FC
     if (data.gameplay.pp.fc != '') {
         //fcPP.innerHTML = Math.round(data.gameplay.pp.fc)
     } else {
         //fcPP.innerHTML = 0
     }
-
+    */
     // Current PP
-    if (data.gameplay.pp.current != '') {
-        //currentPP.innerHTML = Math.round(data.gameplay.pp.current)
-    } else {
-        //currentPP.innerHTML = 0
+    if (data.gameplay.pp.current != ppValue) {
+        ppValue = data.gameplay.pp.current
+        ppAnimation.pp.update(ppValue)
     }
 
+    // Current combo
+    if (data.gameplay.combo.current != comboValue) {
+        comboValue = data.gameplay.combo.current
+        comboAnimation.combo.update(comboValue)
+    }
     // Hits: 300, 100, 50, miss, sliderbreak
+    /*
     if (data.gameplay.hits[300] > 0) {
-        //threehun.innerHTML = data.gameplay.hits[300]
+        threehun.innerHTML = data.gameplay.hits[300]
     } else {
-        //threehun.innerHTML = 0
+        threehun.innerHTML = 0
     }
-
+    */
     if (data.gameplay.hits[100] > 0) {
         hun.innerHTML = data.gameplay.hits[100]
     } else {
@@ -552,19 +586,19 @@ function updateKeys(keyData) {
 function setCustomColors(imgPath) {
     getColorPalette(imgPath).then(function (palette) {
         let hexPalette = {
-            vibrant : palette.Vibrant.getHex(),
-            muted : palette.Muted.getHex(),
-            darkvibrant : palette.DarkVibrant.getHex(),
-            darkmuted : palette.DarkMuted.getHex(),
-            lightvibrant : palette.LightVibrant.getHex()
+            vibrant: palette.Vibrant.getHex(),
+            muted: palette.Muted.getHex(),
+            darkvibrant: palette.DarkVibrant.getHex(),
+            darkmuted: palette.DarkMuted.getHex(),
+            lightvibrant: palette.LightVibrant.getHex()
         }
 
         let accSection = document.getElementById("accSection")
-        if(accSection != null){
+        if (accSection != null) {
             accSection.style.borderColor = hexPalette.darkvibrant
         }
         let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
-        if(graphHR != null){
+        if (graphHR != null) {
             graphHR.style.backgroundColor = hexPalette.vibrant
         }
     })
