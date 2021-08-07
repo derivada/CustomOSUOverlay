@@ -73,9 +73,12 @@ let urAnimation = {
     }),
 }
 
+/* Backgrounds */
+let xKey = document.getElementById("xKey")
+let zKey = document.getElementById("zKey")
+/* Numbers */
 let x = document.getElementById("x")
 let z = document.getElementById("z")
-
 
 // Mod Icons
 const modsImgs = {
@@ -517,21 +520,21 @@ function updateKeys(keyData) {
     if (keyData.k1.isPressed !== k1State) {
         k1State = keyData.k1.isPressed
         if (k1State) {
-            x.style.backgroundColor = "#10637c";
-            x.style.color = "#e0e0e0";
+            xKey.style.backgroundColor = "#10637c";
+            xKey.style.color = "#e0e0e0";
         } else {
-            x.style.backgroundColor = "#e0e0e0";
-            x.style.color = "#10637c";
+            xKey.style.backgroundColor = "#e0e0e0";
+            xKey.style.color = "#10637c";
         }
     }
     if (keyData.k2.isPressed !== k2State) {
         k2State = keyData.k2.isPressed
         if (k2State) {
-            z.style.backgroundColor = "#10637c";
-            z.style.color = "#e0e0e0";
+            zKey.style.backgroundColor = "#10637c";
+            zKey.style.color = "#e0e0e0";
         } else {
-            z.style.backgroundColor = "#e0e0e0";
-            z.style.color = "#10637c";
+            zKey.style.backgroundColor = "#e0e0e0";
+            zKey.style.color = "#10637c";
         }
     }
     // Update keys count
