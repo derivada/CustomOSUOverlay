@@ -9,8 +9,13 @@ html {
 
 
 #main {
-    /* for debugging */
+    /* uncommented for debugging */
+     background: black; 
     background: black;
+     background: black; 
+    display: grid;
+    grid-template-rows: 63px 1363px auto;
+    grid-template-columns: 408px 1745px auto;
     font-size: 20px;
     position: absolute;
     width: 2560px;
@@ -23,45 +28,39 @@ html {
     filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 500;
-    grid-template-rows: auto 1745px auto;
-    grid-template-columns: auto 1363px auto;
-}
 
-.griditem {
-    grid-row-gap: 10px;
-    grid-column-gap: 10px;
 }
 
 /* The area where the game is played, don't put any overlay over this */
 #gamearea {
-    /* for debugging */
+    /* uncommented for debugging */
+     background: red; 
     background: red;
+     background: red; 
+    grid-column: 2;
+    grid-row: 2;
     opacity: 20%;
-    position: fixed;
-    left: 408px;
-    top: 63px;
-    width: 1745px;
-    height: 1363px;
 }
 
 /* Main accuracy and hits panel, also displaying the strains graph and map BG */
 #accSection {
+    grid-column: 1;
+    grid-row: 2;
     display: grid;
     grid-template-columns: 50px 325px;
     grid-template-rows: 150px 50px;
     row-gap: 10px;
     column-gap: 10px;
-    margin-top: 770px;
-    margin-left: 10px;
+    margin: auto 10px auto auto;
+
     width: 375px;
     height: 200px;
-    background-color: rgba(44, 44, 44, 0.85);
     color: rgb(207, 207, 207);
     z-index: -1;
     border-style: solid;
     border-radius: 5px;
     /* default border color, changes with bg */
-    border-color: #36849C; 
+    border-color: #36849C;
     border-width: 5px;
     font-weight: 500;
 }
@@ -71,16 +70,8 @@ html {
     grid-row: 1 / span 2;
     width: 375px;
     height: 200px;
-    -webkit-filter: brightness(50%);
-    -moz-filter: brightness(50%);
-    -ms-filter: brightness(50%);
-    -o-filter: brightness(50%);
-    filter: brightness(50%);
-    -webkit-filter: grayscale(60%);
-    -moz-filter: grayscale(60%);
-    -ms-filter: grayscale(60%);
-    -o-filter: grayscale(60%);
-    filter: grayscale(60%);
+    opacity: 15%;
+
 }
 
 #accuracy {
@@ -180,9 +171,9 @@ html {
 
 /* Unstable Rate (UR) Bottom Display */
 #urSection {
-    position: absolute;
-    top: 91%;
-    left: 885px;
+    grid-column: 2;
+    grid-row: 2;
+    margin: auto auto 45px auto;
     color: rgb(189, 189, 189);
     font-size: 25px;
     width: 150px;
@@ -207,28 +198,30 @@ html {
 
 /* Z/X keys right side display */
 #keySection {
-    position: absolute;
-    top: 50%;
-    left: 1800px;
-
+    grid-row: 2;
+    grid-column: 3;
+    margin: auto 10px auto auto;
     color: rgb(189, 189, 189);
     font-size: 15px;
     font-weight: 900;
-    width: 25px;
-    height: 50px;
+    width: 100px;
+    height: 200px;
+    font-size: 50px;
     text-align: center;
-
     display: grid;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;   
 }
 
 .key {
-    display: block;
+    width: 100px;
+    height: 100px;
+    margin: auto;
     box-sizing: border-box;
     color: #10637c;
     background-color: #e0e0e0;
-    width: 25px;
-    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #mods {
@@ -272,10 +265,3 @@ html {
     mask-image: url(../static/mask_pp.svg);
     display: grid;
 }
-
-.bgImage {
-    background-color: rgb(71, 83, 109);
-    object-fit: cover;
-    z-index: -1;
-}
-
