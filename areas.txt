@@ -1,0 +1,11 @@
+AREA TOTAL: 2560 x 1440
+
+AREA DE JUEGO: 1745 x 1363
+
+UPPER LEFT CORNER: 408 63
+
+LOWER RIGHT CORNER: 2153 1426
+
+Margenes laterales: ~407 pixeles (400)
+
+Margenes verticales: 65 pixeles arriba, 20 pixeles abajo

@@ -70,8 +70,12 @@ let urAnimation = {
         useEasing: true,
         useGrouping: false,
         separator: " "
-        }),
+    }),
 }
+
+let x = document.getElementById("x")
+let z = document.getElementById("z")
+
 
 // Mod Icons
 const modsImgs = {
@@ -118,6 +122,9 @@ let completionTemp = 0
 let mapTime
 let lastTime
 
+let k1Count, k1State
+let k2Count, k2State
+
 // Initialize Star Rating chart
 let SRChart
 createChart()
@@ -163,12 +170,16 @@ socket.onmessage = event => {
         completionTemp = parseFloat((lastTime / mapTime).toFixed(3))
         if (completionTemp > 1.0)
             completionTemp = 1.0
+        if (completionTemp < 0.0)
+            completionTemp = 0.0
         if (completionTemp !== completion) {
             completion = completionTemp
             SRChart.update()
         }
     }
 
+    // Update keys 
+    updateKeys(data.gameplay.keyOverlay);
 
     // Background image
     if (imgValue !== map.path.full) {
@@ -176,7 +187,9 @@ socket.onmessage = event => {
         let img = map.path.full.replace(/#/g, '%23').replace(/%/g, '%25')
 
         // Not sure what the ?a= part is doing
-        accBG.setAttribute('src', `http://127.0.0.1:24050/Songs/${img}?a=${Math.random(10000)}`)
+        let imgPath = `http://127.0.0.1:24050/Songs/${img}?a=${Math.random(10000)}`
+        accBG.setAttribute('src', imgPath)
+        setCustomColors(imgPath)
     }
 
     // Song title
@@ -290,6 +303,7 @@ socket.onmessage = event => {
     } else {
         urAnimation.ur.update(0)
     }
+
 
 
     // Mods
@@ -491,8 +505,68 @@ function refreshChart(values) {
 function getGradient(ctx, chartArea) {
     let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
     gradient.addColorStop(0, 'rgba(230, 230, 230, 0.5)')
-    gradient.addColorStop(Math.min(completion, 1), 'rgba(230, 230, 230, 0.5)')
-    gradient.addColorStop(Math.min(completion, 1), 'rgba(230, 230, 230, 0.2)')
-    gradient.addColorStop(1, 'rgba(230, 230, 230, 0.2)')
+    gradient.addColorStop(Math.min(completion, 1.0), 'rgba(230, 230, 230, 0.5)')
+    gradient.addColorStop(Math.min(completion, 1.0), 'rgba(230, 230, 230, 0.2)')
+    gradient.addColorStop(1.0, 'rgba(230, 230, 230, 0.2)')
     return gradient
+}
+
+function updateKeys(keyData) {
+    // KEYS (X/Z)
+    // Check if key is pressed to change the styling
+    if (keyData.k1.isPressed !== k1State) {
+        k1State = keyData.k1.isPressed
+        if (k1State) {
+            x.style.backgroundColor = "#10637c";
+            x.style.color = "#e0e0e0";
+        } else {
+            x.style.backgroundColor = "#e0e0e0";
+            x.style.color = "#10637c";
+        }
+    }
+    if (keyData.k2.isPressed !== k2State) {
+        k2State = keyData.k2.isPressed
+        if (k2State) {
+            z.style.backgroundColor = "#10637c";
+            z.style.color = "#e0e0e0";
+        } else {
+            z.style.backgroundColor = "#e0e0e0";
+            z.style.color = "#10637c";
+        }
+    }
+    // Update keys count
+    if (k1Count !== keyData.k1.count) {
+        k1Count = keyData.k1.count
+        x.innerHTML = k1Count
+    }
+    if (k2Count !== keyData.k2.count) {
+        k2Count = keyData.k2.count
+        z.innerHTML = k2Count
+    }
+}
+
+/* Find predominant color in image using the Vibrant.js library and apply it to the UI */
+function setCustomColors(imgPath) {
+    getColorPalette(imgPath).then(function (palette) {
+        let hexPalette = {
+            vibrant : palette.Vibrant.getHex(),
+            muted : palette.Muted.getHex(),
+            darkvibrant : palette.DarkVibrant.getHex(),
+            darkmuted : palette.DarkMuted.getHex(),
+            lightvibrant : palette.LightVibrant.getHex()
+        }
+
+        let accSection = document.getElementById("accSection")
+        if(accSection != null){
+            accSection.style.borderColor = hexPalette.darkvibrant
+        }
+        let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
+        if(graphHR != null){
+            graphHR.style.backgroundColor = hexPalette.vibrant
+        }
+    })
+}
+
+function getColorPalette(imgPath) {
+    return Vibrant.from(imgPath).getPalette()
 }

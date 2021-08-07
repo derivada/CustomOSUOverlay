@@ -9,6 +9,8 @@
 
 <body>
     <div id="main">
+        <div id="gamearea" class="griditem"></div>
+
         <!-- <div id="song_square">
             <img src="" id="bg">
             <div id="bgDark"></div>
@@ -33,7 +35,7 @@
             <div id="mods">
             </div>
         </div> -->
-        <div id="accSection">
+        <div id="accSection" class="griditem">
             <img id="accBG" class="bgImage"></img>
             <div id="accuracy">
                 <span id="accText">
@@ -64,9 +66,14 @@
                 </div>
             </div>
         </div>
-        <div id="urSection">
+        <div id="urSection" class="griditem">
             <span id="ur"></span>
             <span id="urText">Unstable Rate</span>
+        </div>
+
+        <div id="keySection" class="griditem">
+            <div id="x" class="key">0</div>
+            <div id="z" class="key">0</div>
         </div>
 
         <!-- <div id="pp">
@@ -85,6 +92,8 @@
         <script src="deps/reconnecting-websocket.min.js"></script>
         <script src="deps/chart.min.js"></script>
         <script src="deps/countUp.js"></script>
+        <script src="deps/vibrant.js"></script>
+        
         <script defer>
             {
                 let el = document.getElementById('100');
@@ -94,6 +103,7 @@
                 });
             }
         </script>
+        
         <script src="adjustfontsize.js"></script>
         <script src="index.js"></script>
 </body>
