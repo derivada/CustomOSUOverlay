@@ -83,8 +83,8 @@ let urAnimation = {
         decimalPlaces: 2,
         useEasing: true,
         useGrouping: false,
-        separator: " ",
-    }),
+        separator: " "
+        }),
 }
 
 let ppAnimation = {
