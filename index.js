@@ -160,6 +160,7 @@ let k2Count, k2State
 // Initialize Star Rating chart
 let SRChart
 createChart()
+const CHART_DETAIL = 100
 
 // On new data
 socket.onmessage = event => {
@@ -508,30 +509,49 @@ function createChart() {
     )
 }
 
-// Refresh the SR Chart 
+// Refresh the SR Chart
 function refreshChart(values) {
-
     // Trim 0s from the array ends
-    let i = 0,
-        j = values.length - 1;
-    while (values[i] === 0 || values[j] === 0) {
-        if (values[i] === 0)
-            i++;
-        if (values[j] === 0)
-            j--;
+    let firstNonZero = 0,
+        lastNonZero = values.length - 1;
+
+    while (values[firstNonZero] === 0 || values[lastNonZero] === 0) {
+        if (values[firstNonZero] === 0)
+            firstNonZero++;
+        if (values[lastNonZero] === 0)
+            lastNonZero--;
     }
-    let len = j - i
-    let valuesTrim = []
+    
+    let trimmedLength = lastNonZero - firstNonZero
+    let trimmedValues = []
     let labels = []
 
-    for (let k = 0; k < len; k++) {
-        valuesTrim[k] = values[k + i]
+    for (let k = 0; k < trimmedLength; k++) {
+        trimmedValues[k] = values[k + firstNonZero]
         labels[k] = k
     }
 
+    // Smooth out graph by removing points. We don't want super spiky graphs for marathon maps.
+    // We will only leave points that satisfy (n mod floor(valuesTrim.length/CHART_DETAIL) is congruent to 0)
+    // This guarantees the array will not be bigger than CHART_DETAIL * 2
+    let smoothValues = []
+    if (trimmedValues.length > CHART_DETAIL * 2) {
+        console.log(trimmedValues)
+        let mod = Math.floor(trimmedValues.length / CHART_DETAIL)
+        for (let n = 0; n <= trimmedValues.length; n++) {
+            if (n % mod == 0)
+                smoothValues.push(trimmedValues[n])
+        }
+        console.log(smoothValues)
+
+    } else {
+        smoothValues = trimmedValues
+    }
+
+    // Update the chart
     SRChart.data.labels = labels
     SRChart.data.datasets.forEach((dataset) => {
-        dataset.data = valuesTrim
+        dataset.data = smoothValues
     })
 
     SRChart.update()
@@ -539,12 +559,15 @@ function refreshChart(values) {
 
 
 
-function getGradient(ctx, chartArea) {
+function getGradient(ctx, chartArea,
+    completedColor = 'rgba(230, 230, 230, 0.5)',
+    notCompletedColor = 'rgba(230, 230, 230, 0.2)') {
+
     let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-    gradient.addColorStop(0, 'rgba(230, 230, 230, 0.5)')
-    gradient.addColorStop(Math.min(completion, 1.0), 'rgba(230, 230, 230, 0.5)')
-    gradient.addColorStop(Math.min(completion, 1.0), 'rgba(230, 230, 230, 0.2)')
-    gradient.addColorStop(1.0, 'rgba(230, 230, 230, 0.2)')
+    gradient.addColorStop(0, completedColor)
+    gradient.addColorStop(Math.min(completion, 1.0), completedColor)
+    gradient.addColorStop(Math.min(completion, 1.0), notCompletedColor)
+    gradient.addColorStop(1.0, notCompletedColor)
     return gradient
 }
 
@@ -584,26 +607,67 @@ function updateKeys(keyData) {
 
 /* Find predominant color in image using the Vibrant.js library and apply it to the UI */
 function setCustomColors(imgPath) {
-    getColorPalette(imgPath).then(function (palette) {
-        let hexPalette = {
-            vibrant: palette.Vibrant.getHex(),
-            muted: palette.Muted.getHex(),
-            darkvibrant: palette.DarkVibrant.getHex(),
-            darkmuted: palette.DarkMuted.getHex(),
-            lightvibrant: palette.LightVibrant.getHex()
-        }
+    getColorPalette(imgPath).then(palette => hexPalette = palette).then(
+        palette => {
+            hexPalette = palette
+            let accSection = document.getElementById("accSection")
+            if (accSection != null) {
+                accSection.style.borderColor = hexPalette.darkvibrant
+            }
+            let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
+            if (graphHR != null) {
+                graphHR.style.backgroundColor = hexPalette.vibrant
+            }
+            let ppSection = document.getElementById("ppSection")
+            if (ppSection != null) {
+                ppSection.style.backgroundColor = hexPalette.darkmuted
+            }
+            let comboSection = document.getElementById("comboSection")
+            if (comboSection != null) {
+                comboSection.style.backgroundColor = hexPalette.darkmuted
+            }
+            let bgFunc = function (context) {
+                const chart = context.chart;
+                const {
+                    ctx,
+                    chartArea
+                } = chart;
 
-        let accSection = document.getElementById("accSection")
-        if (accSection != null) {
-            accSection.style.borderColor = hexPalette.darkvibrant
+                if (!chartArea) {
+                    // This case happens on initial chart load
+                    return null;
+                }
+                return getGradient(ctx, chartArea, hexPalette.muted, hexPalette.darkMuted);
+            }
+
+            SRChart.data.datasets.forEach((dataset) => {
+                dataset.backgroundColor = bgFunc
+            })
         }
-        let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
-        if (graphHR != null) {
-            graphHR.style.backgroundColor = hexPalette.vibrant
-        }
-    })
+    )
 }
 
 function getColorPalette(imgPath) {
-    return Vibrant.from(imgPath).getPalette()
+    return new Promise(function (resolve, reject) {
+        Vibrant.from(imgPath).getPalette().then(function (palette) {
+            resolve({
+                vibrant: palette.Vibrant.getHex(),
+                muted: palette.Muted.getHex(),
+                darkvibrant: palette.DarkVibrant.getHex(),
+                darkmuted: palette.DarkMuted.getHex(),
+                lightvibrant: palette.LightVibrant.getHex()
+            })
+
+        }).catch(err => {
+            console.log("No se pudo obtener la paleta de colores del BG")
+            console.log(err)
+            resolve({
+                vibrant: "#ffffff",
+                muted: "#777777",
+                darkvibrant: "#555555",
+                darkmuted: "#333333",
+                lightvibrant: "#cccccc"
+            })
+        })
+    })
 }
