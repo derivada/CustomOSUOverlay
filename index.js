@@ -52,29 +52,39 @@ let sb = document.getElementById("sb")
 let ur = document.getElementById("ur")
 let grade = document.getElementById("grade")
 let acc = document.getElementById("acc")
+let accDecimals = document.getElementById("accDecimals")
 
 // PP and Combo section counters
 let pp = document.getElementById("pp")
 let combo = document.getElementById("combo")
 
 // CountUp animation objects
+// var CountUp = function(target, startVal, endVal, decimals, duration, options)
+
 let accAnimation = {
-    acc: new CountUp('acc', 0, 100, 2, 0.1, {
-        decimalPlaces: 2,
+    acc: new CountUp('acc', 0, 100, 0, 0.1, {
         useEasing: false,
         useGrouping: false,
         separator: " ",
-        decimal: ".",
+        
+    }),
+};
+let accDecimalsAnimation = {
+    acc: new CountUp('accDecimals', 0, 100, 0, 0.1, {
+        useEasing: false,
+        useGrouping: false,
+        separator: " ",
+        prefix: ".",
         suffix: " %"
     }),
 };
-
 let urAnimation = {
     ur: new CountUp('ur', 0, 100, 0, 1, {
         decimalPlaces: 2,
         useEasing: true,
         useGrouping: false,
-        separator: " "
+        separator: " ",
+        formattingFn: (n) => "a"
     }),
 }
 
@@ -323,7 +333,8 @@ socket.onmessage = event => {
     // Accuracy
     if (data.gameplay.accuracy !== accValue) {
         accValue = data.gameplay.accuracy
-        accAnimation.acc.update(accValue)
+        accAnimation.acc.update(Math.floor(accValue))
+        accDecimalsAnimation.acc.update(((accValue % 1) * 100).toFixed(0))
     }
 
     // UR

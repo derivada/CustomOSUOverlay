@@ -85,6 +85,17 @@ html {
     /* temp */
     margin-top: -20px;
 }
+#accText{
+    /* remove space between the two span tags */
+    font-size: 0px;
+}
+#acc{
+    font-size: 20px;
+}
+
+#accDecimals{
+    font-size: 15px;
+}
 
 #graph {
     width: 300px;
