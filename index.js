@@ -44,8 +44,6 @@ let fcPP = document.getElementById("fcPP")
 let accBG = document.getElementById("accBG")
 
 // Acc section counters
-
-
 let threehun = document.getElementById("300")
 let hun = document.getElementById("100")
 let fifty = document.getElementById("50")
@@ -100,10 +98,11 @@ let comboAnimation = {
     }),
 }
 
-/* Backgrounds */
+/* Key section backgrounds */
 let xKey = document.getElementById("xKey")
 let zKey = document.getElementById("zKey")
-/* Numbers */
+
+/* Key section counters */
 let x = document.getElementById("x")
 let z = document.getElementById("z")
 
@@ -148,11 +147,17 @@ let comboValue
 let strainsValues
 let modsValues
 
+let value100 = 0
+let value50 = 0
+let valueMiss = 0
+let valueSB = 0
 
 let completion = 0
 let completionTemp = 0
 let mapTime
 let lastTime
+
+let valueUR = 0
 
 let k1Count, k1State
 let k2Count, k2State
@@ -162,23 +167,25 @@ let SRChart
 createChart()
 const CHART_DETAIL = 100
 
+// Packet number for current replay
+let packetNumber = 0
+
 // On new data
 socket.onmessage = event => {
+
+    // Data JSON example: https://github.com/l3lackShark/gosumemory/wiki/JSON-values
+    // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
     let data = JSON.parse(event.data),
         menu = data.menu,
         map = menu.bm,
+        gameplay = data.gameplay,
         hdfl = (data.menu.mods.str.includes("HD") || data.menu.mods.str.includes("FL") ? true : false)
 
-    // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
-    if (stateValue !== menu.state) {
-        stateValue = menu.state
-        // if (tempState === 2 || tempState === 7 || tempState === 14) {
-        //     state.style.transform = "translateY(0)"
-        // } else {
-        //     state.style.transform = "translateY(-50px)"
-        // }
+    if (menu.state == 2) {
+        packetNumber++
+    } else {
+        packetNumber = 0
     }
-
     // Map ID
     if (mapid !== map.id) {
         // Debug packet data
@@ -212,7 +219,7 @@ socket.onmessage = event => {
     }
 
     // Update keys 
-    updateKeys(data.gameplay.keyOverlay);
+    updateKeys(gameplay.keyOverlay);
 
     // Background image
     if (imgValue !== map.path.full) {
@@ -273,53 +280,37 @@ socket.onmessage = event => {
         //hp.innerHTML = Math.round(hpValue * 10) / 10
     }
 
-    /* PP if FC
-    if (data.gameplay.pp.fc != '') {
-        //fcPP.innerHTML = Math.round(data.gameplay.pp.fc)
-    } else {
-        //fcPP.innerHTML = 0
-    }
-    */
     // Current PP
-    if (data.gameplay.pp.current != ppValue) {
+    if (gameplay.pp.current != ppValue) {
         ppValue = data.gameplay.pp.current
         ppAnimation.pp.update(ppValue)
     }
 
     // Current combo
-    if (data.gameplay.combo.current != comboValue) {
+    if (gameplay.combo.current != comboValue) {
         comboValue = data.gameplay.combo.current
         comboAnimation.combo.update(comboValue)
     }
-    // Hits: 300, 100, 50, miss, sliderbreak
-    /*
-    if (data.gameplay.hits[300] > 0) {
-        threehun.innerHTML = data.gameplay.hits[300]
-    } else {
-        threehun.innerHTML = 0
-    }
-    */
-    if (data.gameplay.hits[100] > 0) {
-        hun.innerHTML = data.gameplay.hits[100]
-    } else {
-        hun.innerHTML = 0
+
+    // Hits: 100, 50, miss, sliderbreak
+    if (gameplay.hits[100] != value100) {
+        value100 = gameplay.hits[100]
+        hun.innerHTML = value100
     }
 
-    if (data.gameplay.hits[50] > 0) {
-        fifty.innerHTML = data.gameplay.hits[50]
-    } else {
-        fifty.innerHTML = 0
+    if (gameplay.hits[50] != value50) {
+        value50 = gameplay.hits[50]
+        hun.innerHTML = value50
     }
 
-    if (data.gameplay.hits[0] > 0) {
-        miss.innerHTML = data.gameplay.hits[0]
-    } else {
-        miss.innerHTML = 0
+    if (gameplay.hits[0] != valueMiss) {
+        valueMiss = gameplay.hits[0]
+        hun.innerHTML = valueMiss
     }
-    if (data.gameplay.hits.sliderBreaks > 0) {
-        sb.innerHTML = data.gameplay.hits[50]
-    } else {
-        sb.innerHTML = 0
+
+    if (gameplay.hits.sliderBreaks != valueSB) {
+        valueSB = gameplay.hits.sliderBreaks
+        hun.innerHTML = valueSB
     }
 
     // Play grade (SS, S, A...)
@@ -336,13 +327,10 @@ socket.onmessage = event => {
     }
 
     // UR
-    if (data.gameplay.hits.unstableRate != '') {
-        urAnimation.ur.update(data.gameplay.hits.unstableRate)
-    } else {
-        urAnimation.ur.update(0)
+    if (data.gameplay.hits.unstableRate != valueUR) {
+        valueUR = data.gameplay.hits.unstableRate
+        urAnimation.ur.update(valueUR)
     }
-
-
 
     // Mods
     /*
@@ -399,7 +387,6 @@ function traverseJSONPacket(obj) {
 
 // Update the play grade styling (SSH/SH white, SS/S yellow, A green...)
 function updateGradeStyle(hitGrade, hdfl) {
-
     let color, shadow
     switch (hitGrade) {
         case "SS":
@@ -435,32 +422,38 @@ function updateGradeStyle(hitGrade, hdfl) {
 // Create the SR chart
 function createChart() {
     // Dataset properties
-
     let data = {
         labels: [1, 2, 3],
         datasets: [{
-            label: 'SR',
-            backgroundColor: function (context) {
-                const chart = context.chart;
-                const {
-                    ctx,
-                    chartArea
-                } = chart;
-
-                if (!chartArea) {
-                    // This case happens on initial chart load
-                    return null;
-                }
-                return getGradient(ctx, chartArea);
+                label: 'PP',
+                borderColor: 'rgba(255, 0, 0, 0)',
+                /* PP Graph WIP set opacity to 1 to show */
+                data: [1, 2, 3],
+                fill: false,
             },
-            borderColor: 'rgba(230, 230, 230, 0.6)',
-            data: [1, 2, 3],
-            fill: true,
+            {
+                label: 'SR',
+                backgroundColor: function (context) {
+                    const chart = context.chart;
+                    const {
+                        ctx,
+                        chartArea
+                    } = chart;
 
-        }]
+                    if (!chartArea) {
+                        // This case happens on initial chart load
+                        return null;
+                    }
+                    return getGradient(ctx, chartArea);
+                },
+                borderColor: 'rgba(0, 0, 0, 0)',
+                data: [1, 2, 3],
+                fill: true,
+
+            },
+
+        ]
     }
-
-
 
     // Config
     let config = {
@@ -475,7 +468,7 @@ function createChart() {
                     radius: 0,
                 },
                 line: {
-                    borderWidth: 0
+                    borderWidth: 2
                 }
             },
             plugins: {
@@ -521,7 +514,7 @@ function refreshChart(values) {
         if (values[lastNonZero] === 0)
             lastNonZero--;
     }
-    
+
     let trimmedLength = lastNonZero - firstNonZero
     let trimmedValues = []
     let labels = []
@@ -548,10 +541,19 @@ function refreshChart(values) {
         smoothValues = trimmedValues
     }
 
+    let max = Math.max(...smoothValues)
+    let example = []
+    for (let i = 0; i < smoothValues.length / 2; i++) {
+        example[i] = max * (i / smoothValues.length)
+    }
+
     // Update the chart
     SRChart.data.labels = labels
     SRChart.data.datasets.forEach((dataset) => {
-        dataset.data = smoothValues
+        if (dataset.label == 'SR')
+            dataset.data = smoothValues
+        if (dataset.label == 'PP')
+            dataset.data = example
     })
 
     SRChart.update()
@@ -607,48 +609,60 @@ function updateKeys(keyData) {
 
 /* Find predominant color in image using the Vibrant.js library and apply it to the UI */
 function setCustomColors(imgPath) {
-    getColorPalette(imgPath).then(palette => hexPalette = palette).then(
-        palette => {
-            hexPalette = palette
-            let accSection = document.getElementById("accSection")
-            if (accSection != null) {
-                accSection.style.borderColor = hexPalette.darkvibrant
-            }
-            let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
-            if (graphHR != null) {
-                graphHR.style.backgroundColor = hexPalette.vibrant
-            }
-            let ppSection = document.getElementById("ppSection")
-            if (ppSection != null) {
-                ppSection.style.backgroundColor = hexPalette.darkmuted
-            }
-            let comboSection = document.getElementById("comboSection")
-            if (comboSection != null) {
-                comboSection.style.backgroundColor = hexPalette.darkmuted
-            }
-            let bgFunc = function (context) {
-                const chart = context.chart;
-                const {
-                    ctx,
-                    chartArea
-                } = chart;
-
-                if (!chartArea) {
-                    // This case happens on initial chart load
-                    return null;
-                }
-                return getGradient(ctx, chartArea, hexPalette.muted, hexPalette.darkMuted);
-            }
-
-            SRChart.data.datasets.forEach((dataset) => {
-                dataset.backgroundColor = bgFunc
-            })
+    getColorPalette(imgPath).then(palette => {
+        let accSection = document.getElementById("accSection")
+        if (accSection != null) {
+            accSection.style.borderColor = palette.darkvibrant
         }
-    )
+        let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
+        if (graphHR != null) {
+            graphHR.style.backgroundColor = palette.vibrant
+        }
+        let hrPP = ppSection.getElementsByTagName("hr")[0]
+        if (ppSection != null) {
+            hrPP.style.borderTop = "solid " + getRGBAfromHEX(palette.vibrant, 0.8)
+            hrPP.style.boxShadow = "0 0px 10px " + getRGBAfromHEX(palette.vibrant, 1)
+        }
+
+        let hrCombo = comboSection.getElementsByTagName("hr")[0]
+        if (comboSection != null) {
+            hrCombo.style.borderTop = "solid " + getRGBAfromHEX(palette.vibrant, 0.8)
+            hrCombo.style.boxShadow = "0 0px 10px " + getRGBAfromHEX(palette.vibrant, 1)
+        }
+
+        let upwardsGlow = document.getElementsByClassName("upwardsGlow")
+        for (let glow of upwardsGlow) {
+            glow.style.backgroundImage = `linear-gradient(${getRGBAfromHEX(palette.vibrant, 0)}, ${getRGBAfromHEX(palette.vibrant, 1)})`
+        }
+        
+        let bgFunc = function (context) {
+            const chart = context.chart;
+            const {
+                ctx,
+                chartArea
+            } = chart;
+
+            if (!chartArea) {
+                // This case happens on initial chart load
+                return null;
+            }
+            return getGradient(ctx, chartArea, palette.muted, palette.darkMuted);
+        }
+
+        SRChart.data.datasets.forEach((dataset) => {
+            dataset.backgroundColor = bgFunc
+        })
+    })
 }
 
+/*
+    Gets a Palette object containing predominant color codes from an image using Vibrant.js
+    returns: palette { vibrant, muted, darkvibrant, darkmuted, lightvibrant } every value is in hex "#123456" RGB format
+
+    Resolves to default palette (grayscale) if we can't get the palette from the image
+*/
 function getColorPalette(imgPath) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
         Vibrant.from(imgPath).getPalette().then(function (palette) {
             resolve({
                 vibrant: palette.Vibrant.getHex(),
@@ -659,7 +673,7 @@ function getColorPalette(imgPath) {
             })
 
         }).catch(err => {
-            console.log("No se pudo obtener la paleta de colores del BG")
+            console.log("Couldn't get color palette from map BG image at: " + imgPath)
             console.log(err)
             resolve({
                 vibrant: "#ffffff",
@@ -670,4 +684,20 @@ function getColorPalette(imgPath) {
             })
         })
     })
+}
+
+function getRGBAfromHEX(hexString, opacity) {
+    // idk why im manually coding this
+
+    if (hexString.length != 7 || !hexString.startsWith("#")) {
+        throw new Error("Not a valid string")
+    }
+
+    let r = parseInt(hexString.substring(1, 3), 16)
+    let g = parseInt(hexString.substring(3, 5), 16)
+    let b = parseInt(hexString.substring(5, 7), 16)
+    if (isNaN(r) || isNaN(g) || isNaN(b)){
+        throw new Error("Not a valid string")
+    }
+    return `rgba(${r}, ${g}, ${b}, ${opacity}) `
 }

@@ -176,22 +176,20 @@ html {
     grid-row: 2;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: 70px;
-    margin: auto 20px auto auto;
+    column-gap: 100px;
+    margin-left: 15px;
+    margin-top: auto;
+    margin-bottom: auto;
     transform: translate(0px, 145px);
-    width: 350px;
+    width: 375px;
     height: 50px;
     font-weight: 500;
-
 }
 
 #ppComboSection>div {
     text-align: center;
     font-size: 25px;
-    background-color: rgba(50, 50, 100, 0.4);
-    border: #10637c;
     border-radius: 10px;
-    border-style: solid 5px;
     display: grid;
 }
 
@@ -202,11 +200,12 @@ html {
     margin: auto;
 }
 
+
 #ppComboSection hr {
     width: 100px;
     margin-bottom: 5px;
     border-radius: 3px;
-    border-top: 3px;
+    border: 0px;
     text-align: center;
     border-top: solid rgb(200, 200, 200);
     box-shadow: 0 0px 10px rgb(255, 255, 255);
