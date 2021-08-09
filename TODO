@@ -3,7 +3,7 @@
 Overall: 
     - Experiment with different fonts
     - Create Combo and PP Section
-    - Create Player Section (osu!api may be needed to get player data)
+    - Create Player Section (SERVER DONE!, now it's time to do the front-end)
     - Toggle sections on GameStates (replay overview, watching replay, menu)
     - Experiment with HP Section
     - Experiment with custom replay overview screen
@@ -21,5 +21,6 @@ Key Section:
 UR Section:
     - Experiment with color coding for different ranges
 
-
-
+Player data server:
+    - Compact and refactor code
+    - Try using axios library for the image downloading

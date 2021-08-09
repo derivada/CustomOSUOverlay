@@ -8,19 +8,32 @@
 */
 
 /* Socket management */
-
-let socket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws")
-socket.onopen = () => {
-    console.log("Successfully Connected")
+let gosumemorySocket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws")
+let playerDataSocket = new ReconnectingWebSocket("ws://127.0.0.1:24051/ws")
+gosumemorySocket.onopen = () => {
+    console.log("gosumemorySocket Successfully Connected")
 }
 
-socket.onclose = event => {
-    console.log("Socket Closed Connection: ", event)
-    socket.send("Client Closed!")
+gosumemorySocket.onclose = event => {
+    console.log("gosumemorySocket Socket Closed Connection: ", event)
+    gosumemorySocket.send("gosumemorySocket Client Closed!")
 }
 
-socket.onerror = error => {
-    console.log("Socket Error: ", error)
+gosumemorySocket.onerror = error => {
+    console.log("gosumemorySocket Socket Error: ", error)
+}
+
+playerDataSocket.onopen = () => {
+    console.log("playerDataSocket Successfully Connected")
+}
+
+playerDataSocket.onclose = event => {
+    console.log("playerDataSocket Socket Closed Connection: ", event)
+    gosumemorySocket.send("playerDataSocket Client Closed!")
+}
+
+playerDataSocket.onerror = error => {
+    console.log("playerDataSocket Socket Error: ", error)
 }
 
 /* HTML Elements */
@@ -66,7 +79,6 @@ let accAnimation = {
         useEasing: false,
         useGrouping: false,
         separator: " ",
-        
     }),
 };
 let accDecimalsAnimation = {
@@ -84,7 +96,7 @@ let urAnimation = {
         useEasing: true,
         useGrouping: false,
         separator: " "
-        }),
+    }),
 }
 
 let ppAnimation = {
@@ -176,31 +188,33 @@ let SRChart
 createChart()
 const CHART_DETAIL = 100
 
-// Packet number for current replay
-let packetNumber = 0
+// On new data from the player data server
+playerDataSocket.onmessage = event => {
+    let player = JSON.parse(event.data)
+    // Check player data example in server/exampleData.txt 
+    // User avatar should be available at img/avatar.png and country flag at img/flag.png 
 
-// On new data
-socket.onmessage = event => {
+
+}
+
+// On new data from gosumemory
+gosumemorySocket.onmessage = event => {
 
     // Data JSON example: https://github.com/l3lackShark/gosumemory/wiki/JSON-values
     // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
+    if (packetNumber == 0) {
+        console.log(event)
+    }
+
     let data = JSON.parse(event.data),
         menu = data.menu,
         map = menu.bm,
         gameplay = data.gameplay,
         hdfl = (data.menu.mods.str.includes("HD") || data.menu.mods.str.includes("FL") ? true : false)
 
-    if (menu.state == 2) {
-        packetNumber++
-    } else {
-        packetNumber = 0
-    }
     // Map ID
     if (mapid !== map.id) {
         // Debug packet data
-        console.log('\nNEW MAPA DATA:\n')
-        traverseJSONPacket(data)
-
         mapid = map.id
 
         // SR Graph (heavy comparison, only checking after Map ID change, may not update when switching difficulties)
@@ -644,7 +658,7 @@ function setCustomColors(imgPath) {
         for (let glow of upwardsGlow) {
             glow.style.backgroundImage = `linear-gradient(${getRGBAfromHEX(palette.vibrant, 0)}, ${getRGBAfromHEX(palette.vibrant, 1)})`
         }
-        
+
         let bgFunc = function (context) {
             const chart = context.chart;
             const {
@@ -706,7 +720,7 @@ function getRGBAfromHEX(hexString, opacity) {
     let r = parseInt(hexString.substring(1, 3), 16)
     let g = parseInt(hexString.substring(3, 5), 16)
     let b = parseInt(hexString.substring(5, 7), 16)
-    if (isNaN(r) || isNaN(g) || isNaN(b)){
+    if (isNaN(r) || isNaN(g) || isNaN(b)) {
         throw new Error("Not a valid string")
     }
     return `rgba(${r}, ${g}, ${b}, ${opacity}) `
