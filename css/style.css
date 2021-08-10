@@ -10,7 +10,7 @@ html {
 
 #main {
     /* uncommented for debugging */
-     background: black;  
+    background: black;
     display: grid;
     grid-template-rows: 63px 1363px auto;
     grid-template-columns: 408px 1745px auto;
@@ -25,9 +25,7 @@ html {
     -o-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     font-family: "Roboto", sans-serif;
-    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
     font-weight: 500;
-
 }
 
 /* The area where the game is played, don't put any overlay over this */
@@ -48,7 +46,8 @@ html {
     grid-template-rows: 150px 50px;
     row-gap: 10px;
     column-gap: 10px;
-    margin: auto 10px auto auto;
+    margin: auto auto auto 10px;
+    transform: translate(0, -100px);
 
     width: 375px;
     height: 200px;
@@ -195,7 +194,7 @@ html {
     margin-left: 15px;
     margin-top: auto;
     margin-bottom: auto;
-    transform: translate(0px, 145px);
+    transform: translate(0px, 45px);
     width: 375px;
     height: 50px;
     font-weight: 400;
@@ -237,6 +236,107 @@ html {
     filter: blur(2px);
 }
 
+/* Main accuracy and hits panel, also displaying the strains graph and map BG */
+#playerSection {
+    grid-column: 1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 100px 200px;
+    grid-template-rows: 50px 50px 25px;
+    gap: 0px;
+    margin: auto auto auto 10px;
+    transform: translate(0, -350px);
+    width: 300px;
+    height: 125px;
+    color: rgb(207, 207, 207);
+    font-weight: 300;
+}
+
+
+#preFooterLine {
+    grid-row: 3;
+    grid-column: 1;
+    width: 25%;
+    height: 2px;
+    border: none;
+    margin: 0px;
+    border-radius: 5px;
+    margin: auto auto auto 0;
+    /* default border color, changes with bg */
+    background: linear-gradient(to left, rgb(70, 122, 151), transparent)
+}
+
+#footerLine {
+    grid-row: 3;
+    grid-column: 2;
+    width: 90%;
+    height: 2px;
+    border: none;
+    margin: 0px;
+    border-radius: 5px;
+    margin: auto;
+    /* default border color, changes with bg */
+    background: linear-gradient(to right, rgb(70, 122, 151), transparent)
+}
+
+#footerText {
+    grid-row: 3;
+    grid-column: 1;
+    position: relative;
+    text-align: left;
+    left: 30px;
+}
+
+#avatar {
+    margin: 0;
+    grid-column: 1;
+    height: 95px;
+    width: 95px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 2.5px 2.5px 5px rgb(77, 46, 75);
+}
+
+#playerInfo {
+    grid-column: 2;
+    display: grid;
+    padding-left: 10px;
+    grid-template-rows: 0.5fr 1fr;
+}
+
+#playerName {
+    font-weight: 500;
+    font-size: 120%;
+}
+
+#generalInfo {
+    display: relative;
+    height: 40px;
+}
+
+#generalInfo>span {
+    position: relative;
+    bottom: -10px;
+}
+
+#countryInfo {
+    display: flex;
+    height: 60px;
+    align-items: center;
+    justify-content: left;
+}
+
+#countryFlag {
+    height: 50px;
+    width: 50px;
+    object-fit: contain;
+}
+
+.rank {
+    font-size: 80%;
+    margin-left: 10px;
+    color: #aaaaaa;
+}
 
 /* Unstable Rate (UR) Bottom Display */
 #urSection {
