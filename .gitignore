@@ -1,3 +1,4 @@
 server/*.env
 img/avatar.png
 img/flag.png
+*.old

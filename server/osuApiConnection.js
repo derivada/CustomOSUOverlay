@@ -1,9 +1,9 @@
-const fetch = require("node-fetch")
+const fetch = require('node-fetch')
 const fs = require('fs')
 require('dotenv').config();
 
 // osu!api authorization
-let osuOAuthKey
+let osuOAuthKey, authHeader
 
 async function connect() {
   if (!process.env.OSU_KEY) {
@@ -27,50 +27,65 @@ async function connect() {
   }).then(key => {
     if (key && key.access_token) {
       osuOAuthKey = key.access_token
+      authHeader = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${osuOAuthKey}`
+      };
     } else {
       throw Error("Login error! The OAuth key wasn't received from the API.")
     }
   });
 }
 
-// Get my user data
-async function getUserJSON(user, mode = "osu") {
-  const url = new URL(
-    `https://osu.ppy.sh/api/v2/users/${user}/osu`
-  );
-  /*
-    let params = {
-      "key": user,
-    };
-    
-    Object.keys(params)
-      .forEach(key => url.searchParams.append(key, params[key]));
-  */
-  let headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": `Bearer ${osuOAuthKey}`
-  };
+async function login() {
+  if (osuOAuthKey === '') {
+    console.log("Already connected to the osu!API")
+  } else {
+    await connect().then(() => {
+      console.log("Successfully connected to the osu!API")
+    }).catch(err => {
+      console.log("Error while logging:", err)
+    })
+  }
+}
 
+// Get user JSON data
+async function getUserJSON(user, mode = "osu") {
+  const url = new URL(`https://osu.ppy.sh/api/v2/users/${user}/${mode}`);
   let response = await fetch(url, {
     method: "GET",
-    headers,
+    headers: authHeader,
   });
+
   let data = await response.json();
   return data
 }
 
-
+// Get the specific user data that we use in the program, aswell as the avatar and country flag
 async function getUserData(user, mode = "osu") {
   let jsonData = await getUserJSON(user, mode)
-  console.log("avatar url:", jsonData.avatar_url)
-  let avatar = downloadImage(jsonData.avatar_url, "..\\img\\avatar.png")
-  console.log("flag url:", `https://www.countryflags.io/${jsonData.country_code}/shiny/64.png`)
 
+  /*
+    For debugging
+    
+    fs.writeFile("debug.txt", JSON.stringify(jsonData, null, 4), function (err) {
+      if (err) {
+        console.log(err);
+      }
+    });
+  
+    console.log("Avatar URL:", jsonData.avatar_url)
+    console.log("Flag URL:", `https://www.countryflags.io/${jsonData.country_code}/shiny/64.png`)
+  */
+
+  let avatar = downloadImage(jsonData.avatar_url, "..\\img\\avatar.png")
   let flag = downloadImage(`https://www.countryflags.io/${jsonData.country_code}/shiny/64.png`,
     "..\\img\\flag.png")
   await Promise.all([avatar, flag]);
-  console.log("Image download done, sending data...")
+
+  console.log("Image downloading done")
+
   return {
     username: jsonData.username,
     country: jsonData.country.name,
@@ -84,24 +99,10 @@ async function downloadImage(url, dest) {
   const response = await fetch(url);
   const buffer = await response.buffer();
   fs.writeFile(dest, buffer, () =>
-    console.log('finished downloading!'));
-}
-
-
-async function login() {
-  if (osuOAuthKey === '') {
-    console.log("Already connected")
-  } else {
-    await connect().then(() => {
-      console.log("Successfully connected!")
-    }).catch(err => {
-      console.log(err.message)
-    })
-  }
+    console.log(`Downloaded ${dest.substring(dest.lastIndexOf("\\") + 1)}`));
 }
 
 module.exports = {
   login,
-  getUserJSON,
   getUserData
 }

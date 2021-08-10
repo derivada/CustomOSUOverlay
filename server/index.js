@@ -11,22 +11,21 @@
  * this should be of the format OSU_KEY=usd9f87JSFojuf908FJLSKFJ 
  */
 
-const WebSocket = require("ws")
+const WebSocket = require('ws')
 const osu = require("./osuApiConnection.js")
-const fs = require('fs')
-const URL = "ws://127.0.0.1:24050/ws"
-let client
 
-const inputSocket = new WebSocket(URL)
+const inputURL = "ws://127.0.0.1:24050/ws"
+const inputSocket = new WebSocket(inputURL) // data from gosumemory!
 
+let client // The frontend UI client
 const server = new WebSocket.Server({
   port: 24051
 });
-
 let lastPlayer = ''
-
-let dataSender
 let playerData
+
+const sendRate = 1000
+let dataSender
 let packetsSent = 0
 
 inputSocket.onmessage = (e) => {
@@ -42,14 +41,14 @@ inputSocket.onmessage = (e) => {
     }
     lastPlayer = gameplay.name
     if (lastPlayer != '') {
-      console.log(gameplay.name)
+      console.log("New player:", gameplay.name)
       // Do API request
       osu.login().then(() => osu.getUserData(gameplay.name)).then(userData => {
         // Send sample data to frontend client
         console.log("Sending data...")
         // Send the fresh data every second. I'm bad at naming
         playerData = JSON.stringify(userData)
-        dataSender = setInterval(sendData, 1000);
+        dataSender = setInterval(sendData, sendRate);
       }).catch(err => console.log(err.message))
     } else {
       console.log('End of replay, player dissappeared...')
@@ -64,19 +63,19 @@ function sendData() {
     if (client) {
       client.send(playerData)
       packetsSent++
-      process.stdout.write(`${lastPlayer} data sent(${packetsSent})\r`);
+      process.stdout.write(`${lastPlayer} data sent (${packetsSent})\r`);
       //console.log(`Sent data (${packetsSent})`)
     }
   } catch (e) {
     console.log("Can't send data, not valid JSON");
     console.log(playerData)
   }
-
 }
 
+// We are only allowing one client, could be changed if needed 
 server.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+    console.log('Received message:', message);
   });
 
   console.log('Client connected');

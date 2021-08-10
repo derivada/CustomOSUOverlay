@@ -1,15 +1,18 @@
 /* osu! custom overlay by derivadas */
+
 /*
     Dependencies used:
     - reconnecting-websocket.js (For socket management)
     - countUp.js (For regular counter updating)
     - odomtr.js (For smooth counter updating)
     - chart.js (For SR chart)
+    - vibrant.js (For getting dynamic custom colors from images)
 */
 
 /* Socket management */
 let gosumemorySocket = new ReconnectingWebSocket("ws://127.0.0.1:24050/ws")
 let playerDataSocket = new ReconnectingWebSocket("ws://127.0.0.1:24051/ws")
+
 gosumemorySocket.onopen = () => {
     console.log("gosumemorySocket Successfully Connected")
 }
@@ -36,27 +39,10 @@ playerDataSocket.onerror = error => {
     console.log("playerDataSocket Socket Error: ", error)
 }
 
-/* HTML Elements */
 
-// Game state
-let state = document.getElementById("state")
+/* DOM Variables */
 
-// Map data
-let mapid = document.getElementById("mapid")
-let bg = document.getElementById("bg")
-let title = document.getElementById("title")
-let artist = document.getElementById("artist")
-let diff = document.getElementById("diff")
-let cs = document.getElementById("cs")
-let ar = document.getElementById("ar")
-let od = document.getElementById("od")
-let hp = document.getElementById("hp")
-let mods = document.getElementById("mods")
-let sr = document.getElementById("sr")
-let fcPP = document.getElementById("fcPP")
-let accBG = document.getElementById("accBG")
-
-// Acc section counters
+// Acc section
 let threehun = document.getElementById("300")
 let hun = document.getElementById("100")
 let fifty = document.getElementById("50")
@@ -66,32 +52,66 @@ let ur = document.getElementById("ur")
 let grade = document.getElementById("grade")
 let acc = document.getElementById("acc")
 let accDecimals = document.getElementById("accDecimals")
+let bg = document.getElementById("bg")
+let accBG = document.getElementById("accBG")
 
-// PP and Combo section counters
+// PP and Combo section
 let pp = document.getElementById("pp")
 let combo = document.getElementById("combo")
 
-// CountUp animation objects
-// var CountUp = function(target, startVal, endVal, decimals, duration, options)
+// Key section  
+let xKey = document.getElementById("xKey")
+let zKey = document.getElementById("zKey")
+let x = document.getElementById("x")
+let z = document.getElementById("z")
+
+// Player Section 
+let avatar = document.getElementById("avatar")
+let playerName = document.getElementById("playerName")
+let globalRank = document.getElementById("globalRank")
+let countryFlag = document.getElementById("countryFlag")
+let countryRank = document.getElementById("countryRank")
+
+
+
+/* Temporal (last-updated) values */
+let lastMapID = 0, lastMapStrains = [], lastMapBG = ""
+
+let currentTime = 0, lastCompletionPercentage = 0, lastMapObjectsTime = 0
+
+let lastAcc = 0, lastGrade = "D"
+
+let lastPP = 0, lastCombo = 0
+
+let last100Count = 0, last50Count = 0, lastMissCount = 0, lastSBCount = 0
+
+let lastUR = 0
+
+let lastK1Count = 0, lastK1State = "", lastK2Count = 0, lastK2State = ""
+
+let lastPlayer = ""
+
+/* CountUp animation objects */
+// Syntax: new CountUp(target, startVal, endVal, decimals, duration, options)
 
 let accAnimation = {
-    acc: new CountUp('acc', 0, 100, 0, 0.1, {
+    acc: new CountUp('acc', 0, 0, 0, 0.1, {
         useEasing: false,
         useGrouping: false,
         separator: " ",
     }),
-};
+}
 let accDecimalsAnimation = {
-    acc: new CountUp('accDecimals', 0, 100, 0, 0.1, {
+    acc: new CountUp('accDecimals', 0, 0, 0, 0.1, {
         useEasing: false,
         useGrouping: false,
         separator: " ",
         prefix: ".",
         suffix: " %"
     }),
-};
+}
 let urAnimation = {
-    ur: new CountUp('ur', 0, 100, 0, 1, {
+    ur: new CountUp('ur', 0, 0, 0, 1, {
         decimalPlaces: 2,
         useEasing: true,
         useGrouping: false,
@@ -100,7 +120,7 @@ let urAnimation = {
 }
 
 let ppAnimation = {
-    pp: new CountUp('pp', 0, 100, 0, 1, {
+    pp: new CountUp('pp', 0, 0, 0, 1, {
         decimalPlaces: 2,
         useEasing: true,
         useGrouping: false,
@@ -110,7 +130,7 @@ let ppAnimation = {
 }
 
 let comboAnimation = {
-    combo: new CountUp('combo', 0, 100, 0, 1, {
+    combo: new CountUp('combo', 0, 0, 0, 1, {
         decimalPlaces: 2,
         useEasing: true,
         useGrouping: false,
@@ -119,84 +139,12 @@ let comboAnimation = {
     }),
 }
 
-/* Key section backgrounds */
-let xKey = document.getElementById("xKey")
-let zKey = document.getElementById("zKey")
-
-/* Key section counters */
-let x = document.getElementById("x")
-let z = document.getElementById("z")
-
-// Mod Icons
-const modsImgs = {
-    'ez': './static/easy.png',
-    'nf': './static/nofail.png',
-    'ht': './static/halftime.png',
-    'hr': './static/hardrock.png',
-    'sd': './static/suddendeath.png',
-    'pf': './static/perfect.png',
-    'dt': './static/doubletime.png',
-    'nc': './static/nightcore.png',
-    'hd': './static/hidden.png',
-    'fl': './static/flashlight.png',
-    'rx': './static/relax.png',
-    'ap': './static/autopilot.png',
-    'so': './static/spunout.png',
-    'at': './static/autoplay.png',
-    'cn': './static/cinema.png',
-    'v2': './static/v2.png',
-}
-
-// Temporal (last-updated) values
-let imgValue // Background image
-let titleValue
-let artistValue
-let csValue
-let arValue
-let odValue
-let hpValue
-let modsValue
-let srValue // Full map Star Rating
-let stateValue
-let diffValue
-let gradeValue
-let accValue
-let urValue
-
-let ppValue
-let comboValue
-let strainsValues
-let modsValues
-
-let value100 = 0
-let value50 = 0
-let valueMiss = 0
-let valueSB = 0
-
-let completion = 0
-let completionTemp = 0
-let mapTime
-let lastTime
-
-let valueUR = 0
-
-let k1Count, k1State
-let k2Count, k2State
-
-// Initialize Star Rating chart
+/* SRChart initialization */
+const CHART_DETAIL = 100
 let SRChart
 createChart()
-const CHART_DETAIL = 100
 
-// Player Section
-let avatar = document.getElementById("avatar")
-let playerName = document.getElementById("playerName")
-let globalRank = document.getElementById("globalRank")
-let countryFlag = document.getElementById("countryFlag")
-let countryRank = document.getElementById("countryRank")
-let lastPlayer = ''
-
-// On new data from the player data server
+// On new data from the player data server. Data arrives every second if a replay is active
 playerDataSocket.onmessage = event => {
     // Check player data example in server/exampleData.txt 
     // User avatar should be available at img/avatar.png and country flag at img/flag.png 
@@ -226,9 +174,8 @@ function updatePlayerData(data) {
     })
 }
 
-// On new data from gosumemory
+// On new data from gosumemory. Data arrives every 100ms
 gosumemorySocket.onmessage = event => {
-
     // Data JSON example: https://github.com/l3lackShark/gosumemory/wiki/JSON-values
     // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
 
@@ -239,199 +186,74 @@ gosumemorySocket.onmessage = event => {
         hdfl = (data.menu.mods.str.includes("HD") || data.menu.mods.str.includes("FL") ? true : false)
 
     // Map ID
-    if (mapid !== map.id) {
-        // Debug packet data
-        mapid = map.id
-
-        // SR Graph (heavy comparison, only checking after Map ID change, may not update when switching difficulties)
-        if (strainsValues !== menu.pp.strains) {
-            strainsValues = menu.pp.strains
-            refreshChart(strainsValues)
+    update(map.id, lastMapID, (newValue) => {
+        if (lastMapStrains !== menu.pp.strains) {
+            lastMapStrains = menu.pp.strains
+            refreshChart(lastMapStrains)
         }
-    }
+    })
 
-    // Time Management
-    if (mapTime !== map.time.full - map.time.firstObj) {
-        mapTime = map.time.full - map.time.firstObj
+    // Time and completion percentage
+    if (lastMapObjectsTime !== map.time.full - map.time.firstObj) {
+        lastMapObjectsTime = map.time.full - map.time.firstObj
     }
-    if (lastTime !== map.time.current) {
-        lastTime = map.time.current
-        completionTemp = parseFloat((lastTime / mapTime).toFixed(3))
+    if (currentTime !== map.time.current) {
+        currentTime = map.time.current
+        let completionTemp = parseFloat((currentTime / lastMapObjectsTime).toFixed(3))
         if (completionTemp > 1.0)
             completionTemp = 1.0
         if (completionTemp < 0.0)
             completionTemp = 0.0
-        if (completionTemp !== completion) {
-            completion = completionTemp
+        if (completionTemp !== lastCompletionPercentage) {
+            lastCompletionPercentage = completionTemp
             SRChart.update()
         }
     }
 
-    // Update keys 
-    //updateKeys(gameplay.keyOverlay);
-
     // Background image
-    if (imgValue !== map.path.full) {
-        imgValue = map.path.full
-        let img = map.path.full.replace(/#/g, '%23').replace(/%/g, '%25')
+    update(map.path.full, lastMapBG, (newValue) => {
+        let fixedImg = newValue.replace(/#/g, '%23').replace(/%/g, '%25')
 
         // Not sure what the ?a= part is doing
         // Now I know! It's for the browser to always detect a change in the image!
-        let imgPath = `http://127.0.0.1:24050/Songs/${img}?a=${Math.random(10000)}`
-        accBG.setAttribute('src', imgPath)
-        setCustomColors(imgPath)
-    }
-
-    // Song title
-    if (titleValue !== map.metadata.title) {
-        titleValue = map.metadata.title
-        //title.innerHTML = titleValue
-    }
-
-    // Song artist
-    if (artistValue !== map.metadata.artist) {
-        artistValue = map.metadata.artist
-        //artist.innerHTML = artistValue
-    }
-
-    // Map difficulty
-    if (diffValue !== map.metadata.difficulty) {
-        diffValue = map.metadata.difficulty
-        //diff.innerHTML = diffValue
-    }
-
-    // SR
-    if (map.stats.fullSR != srValue) {
-        srValue = map.stats.fullSR
-        //sr.innerHTML = srValue
-    }
-    // CS
-    if (map.stats.CS != csValue) {
-        csValue = map.stats.CS
-        //cs.innerHTML = Math.round(csValue * 10) / 10
-    }
-
-    // AR
-    if (map.stats.AR != arValue) {
-        arValue = map.stats.AR
-        //ar.innerHTML = Math.round(arValue * 10) / 10
-    }
-
-    // OD
-    if (map.stats.OD != odValue) {
-        odValue = map.stats.OD
-        //od.innerHTML = Math.round(odValue * 10) / 10
-    }
-
-    // HP
-    if (map.stats.HP != hpValue) {
-        hpValue = map.stats.HP
-        //hp.innerHTML = Math.round(hpValue * 10) / 10
-    }
-
-    // Current PP
-    if (gameplay.pp.current != ppValue) {
-        ppValue = data.gameplay.pp.current
-        ppAnimation.pp.update(ppValue)
-    }
-
-    // Current combo
-    if (gameplay.combo.current != comboValue) {
-        comboValue = data.gameplay.combo.current
-        comboAnimation.combo.update(comboValue)
-    }
-
-    // Hits: 100, 50, miss, sliderbreak
-    if (gameplay.hits[100] != value100) {
-        value100 = gameplay.hits[100]
-        hun.innerHTML = value100
-    }
-
-    if (gameplay.hits[50] != value50) {
-        value50 = gameplay.hits[50]
-        hun.innerHTML = value50
-    }
-
-    if (gameplay.hits[0] != valueMiss) {
-        valueMiss = gameplay.hits[0]
-        hun.innerHTML = valueMiss
-    }
-
-    if (gameplay.hits.sliderBreaks != valueSB) {
-        valueSB = gameplay.hits.sliderBreaks
-        hun.innerHTML = valueSB
-    }
-
-    // Play grade (SS, S, A...)
-    if (data.gameplay.hits.grade.current !== gradeValue) {
-        gradeValue = data.gameplay.hits.grade.current
-        grade.innerHTML = gradeValue
-        updateGradeStyle(gradeValue, hdfl)
-    }
+        let path = `http://127.0.0.1:24050/Songs/${fixedImg}?a=${Math.random(10000)}`
+        accBG.setAttribute('src', path)
+        setCustomColors(path)
+    })
 
     // Accuracy
-    if (data.gameplay.accuracy !== accValue) {
-        accValue = data.gameplay.accuracy
-        accAnimation.acc.update(Math.floor(accValue))
-        accDecimalsAnimation.acc.update(((accValue % 1) * 100).toFixed(0))
-    }
+    update(gameplay.accuracy, lastAcc, (newValue) => {
+        accAnimation.acc.update(Math.floor(newValue))
+        accDecimalsAnimation.acc.update(((newValue % 1) * 100).toFixed(0))
+    })
+    // Play grade (SS, S, A...)
+    update(gameplay.hits.grade.current, lastGrade, (newValue) => {
+        grade.innerHTML = newValue
+        updateGradeStyle(newValue, hdfl)
+    })
+
+    // Hits
+    update(gameplay.hits[100], last100Count, (newValue) => hun.innerHTML = newValue)
+    update(gameplay.hits[50], last50Count, (newValue) => fifty.innerHTML = newValue)
+    update(gameplay.hits[0], lastMissCount, (newValue) => miss.innerHTML = newValue)
+    update(gameplay.hits.sliderBreaks, lastSBCount, (newValue) => sb.innerHTML = newValue)
+
+    // PP and Combo
+    update(gameplay.pp.current, lastPP, ppAnimation.pp.update)
+    update(gameplay.combo.current, lastCombo, comboAnimation.combo.update)
 
     // UR
-    if (data.gameplay.hits.unstableRate != valueUR) {
-        valueUR = data.gameplay.hits.unstableRate
-        urAnimation.ur.update(valueUR)
-    }
+    update(gameplay.hits.unstableRate, lastUR, urAnimation.ur.update)
 
-    // Mods
-    /*
-    if (modsValues != menu.mods.str) {
-        modsValues = menu.mods.str
-        if (modsValues == "" || modsValues == "NM") {
-            mods.innerHTML = ''
-        } else {
-            mods.innerHTML = ''
-            let modsApplied = modsValues.toLowerCase()
-
-            if (modsApplied.indexOf('nc') != -1) {
-                modsApplied = modsApplied.replace('dt', '')
-            }
-            if (modsApplied.indexOf('pf') != -1) {
-                modsApplied = modsApplied.replace('sd', '')
-            }
-            let modsArr = modsApplied.match(/.{1,2}/g)
-            for (let i = 0; i < modsArr.length; i++) {
-                let mod = document.createElement('div')
-                mod.setAttribute('class', 'mod')
-                let modImg = document.createElement('img')
-                modImg.setAttribute('src', modsImgs[modsArr[i]])
-                mod.appendChild(modImg)
-                mods.appendChild(mod)
-            }
-        }
-    }
-    */
+    // Keys
+    //updateKeys(gameplay.keyOverlay)
 }
 
-// Debug JSON packets
-function traverseJSONPacket(obj) {
-    if (obj instanceof Array) {
-        for (var i = 0; i < obj.length; i++) {
-            if (typeof obj[i] == "object" && obj[i]) {
-                console.log(i)
-                traverseJSONPacket(obj[i])
-            } else {
-                console.log(i, obj[i])
-            }
-        }
-    } else {
-        for (var prop in obj) {
-            if (typeof obj[prop] == "object" && obj[prop]) {
-                console.log(prop)
-                traverseJSONPacket(obj[prop])
-            } else {
-                console.log(prop, obj[prop])
-            }
-        }
+function update(newValue, savedValue, callback) {
+    // Update a variable with a new value and call the function on it
+    if (newValue != savedValue) {
+        savedValue = newValue
+        callback(savedValue)
     }
 }
 
@@ -477,24 +299,24 @@ function createChart() {
         datasets: [{
                 label: 'PP',
                 borderColor: 'rgba(255, 0, 0, 0)',
-                /* PP Graph WIP set opacity to 1 to show */
+                /* PP Chart WIP set opacity to 1 to show */
                 data: [1, 2, 3],
                 fill: false,
             },
             {
                 label: 'SR',
                 backgroundColor: function (context) {
-                    const chart = context.chart;
+                    const chart = context.chart
                     const {
                         ctx,
                         chartArea
-                    } = chart;
+                    } = chart
 
                     if (!chartArea) {
                         // This case happens on initial chart load
-                        return null;
+                        return null
                     }
-                    return getGradient(ctx, chartArea);
+                    return getChartGradient(ctx, chartArea)
                 },
                 borderColor: 'rgba(0, 0, 0, 0)',
                 data: [1, 2, 3],
@@ -556,13 +378,13 @@ function createChart() {
 function refreshChart(values) {
     // Trim 0s from the array ends
     let firstNonZero = 0,
-        lastNonZero = values.length - 1;
+        lastNonZero = values.length - 1
 
     while (values[firstNonZero] === 0 || values[lastNonZero] === 0) {
         if (values[firstNonZero] === 0)
-            firstNonZero++;
+            firstNonZero++
         if (values[lastNonZero] === 0)
-            lastNonZero--;
+            lastNonZero--
     }
 
     let trimmedLength = lastNonZero - firstNonZero
@@ -574,7 +396,7 @@ function refreshChart(values) {
         labels[k] = k
     }
 
-    // Smooth out graph by removing points. We don't want super spiky graphs for marathon maps.
+    // Smooth out chart by removing points. We don't want super spiky charts for marathon maps.
     // We will only leave points that satisfy (n mod floor(valuesTrim.length/CHART_DETAIL) is congruent to 0)
     // This guarantees the array will not be bigger than CHART_DETAIL * 2
     let smoothValues = []
@@ -609,64 +431,62 @@ function refreshChart(values) {
     SRChart.update()
 }
 
-
-
-function getGradient(ctx, chartArea,
+function getChartGradient(ctx, chartArea,
     completedColor = 'rgba(230, 230, 230, 0.5)',
     notCompletedColor = 'rgba(230, 230, 230, 0.2)') {
 
-    let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+    let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
     gradient.addColorStop(0, completedColor)
-    gradient.addColorStop(Math.min(completion, 1.0), completedColor)
-    gradient.addColorStop(Math.min(completion, 1.0), notCompletedColor)
+    gradient.addColorStop(Math.min(lastCompletionPercentage, 1.0), completedColor)
+    gradient.addColorStop(Math.min(lastCompletionPercentage, 1.0), notCompletedColor)
     gradient.addColorStop(1.0, notCompletedColor)
     return gradient
 }
 
 function updateKeys(keyData) {
-    // KEYS (X/Z)
-    // Check if key is pressed to change the styling
-    if (keyData.k1.isPressed !== k1State) {
-        k1State = keyData.k1.isPressed
-        if (k1State) {
-            xKey.style.backgroundColor = "#10637c";
-            xKey.style.color = "#e0e0e0";
+    // Checks if key is pressed to change the styling
+    if (keyData.k1.isPressed !== lastK1State) {
+        lastK1State = keyData.k1.isPressed
+        if (lastK1State) {
+            xKey.style.backgroundColor = "#10637c"
+            xKey.style.color = "#e0e0e0"
         } else {
-            xKey.style.backgroundColor = "#e0e0e0";
-            xKey.style.color = "#10637c";
+            xKey.style.backgroundColor = "#e0e0e0"
+            xKey.style.color = "#10637c"
         }
     }
-    if (keyData.k2.isPressed !== k2State) {
-        k2State = keyData.k2.isPressed
-        if (k2State) {
-            zKey.style.backgroundColor = "#10637c";
-            zKey.style.color = "#e0e0e0";
+    if (keyData.k2.isPressed !== lastK2State) {
+        lastK2State = keyData.k2.isPressed
+        if (lastK2State) {
+            zKey.style.backgroundColor = "#10637c"
+            zKey.style.color = "#e0e0e0"
         } else {
-            zKey.style.backgroundColor = "#e0e0e0";
-            zKey.style.color = "#10637c";
+            zKey.style.backgroundColor = "#e0e0e0"
+            zKey.style.color = "#10637c"
         }
     }
-    // Update keys count
-    if (k1Count !== keyData.k1.count) {
-        k1Count = keyData.k1.count
-        x.innerHTML = k1Count
+
+    // Updates key count
+    if (lastK1Count !== keyData.k1.count) {
+        lastK1Count = keyData.k1.count
+        x.innerHTML = lastK1Count
     }
-    if (k2Count !== keyData.k2.count) {
-        k2Count = keyData.k2.count
-        z.innerHTML = k2Count
+    if (lastK2Count !== keyData.k2.count) {
+        lastK2Count = keyData.k2.count
+        z.innerHTML = lastK2Count
     }
 }
 
 /* Find predominant color in image using the Vibrant.js library and apply it to the UI */
-function setCustomColors(imgPath) {
-    getColorPalette(imgPath).then(palette => {
+function setCustomColors(path) {
+    getColorPalette(path).then(palette => {
         let accSection = document.getElementById("accSection")
         if (accSection != null) {
             accSection.style.borderColor = palette.darkvibrant
         }
-        let graphHR = document.getElementById("graph").getElementsByTagName('hr')[0]
-        if (graphHR != null) {
-            graphHR.style.backgroundColor = palette.vibrant
+        let chartHR = document.getElementById("chart").getElementsByTagName('hr')[0]
+        if (chartHR != null) {
+            chartHR.style.backgroundColor = palette.vibrant
         }
         let hrPP = ppSection.getElementsByTagName("hr")[0]
         if (ppSection != null) {
@@ -686,17 +506,17 @@ function setCustomColors(imgPath) {
         }
 
         let bgFunc = function (context) {
-            const chart = context.chart;
+            const chart = context.chart
             const {
                 ctx,
                 chartArea
-            } = chart;
+            } = chart
 
             if (!chartArea) {
                 // This case happens on initial chart load
-                return null;
+                return null
             }
-            return getGradient(ctx, chartArea, palette.muted, palette.darkMuted);
+            return getChartGradient(ctx, chartArea, palette.muted, palette.darkMuted)
         }
 
         SRChart.data.datasets.forEach((dataset) => {
@@ -721,10 +541,10 @@ function getColorPalette(imgPath) {
                 darkmuted: palette.DarkMuted.getHex(),
                 lightvibrant: palette.LightVibrant.getHex()
             })
-
         }).catch(err => {
             console.log("Couldn't get color palette from map BG image at: " + imgPath)
             console.log(err)
+            console.log("Returning default palette")
             resolve({
                 vibrant: "#ffffff",
                 muted: "#777777",
@@ -737,8 +557,6 @@ function getColorPalette(imgPath) {
 }
 
 function getRGBAfromHEX(hexString, opacity) {
-    // idk why im manually coding this
-
     if (hexString.length != 7 || !hexString.startsWith("#")) {
         throw new Error("Not a valid string")
     }

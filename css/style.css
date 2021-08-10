@@ -37,7 +37,7 @@ html {
     opacity: 20%;
 }
 
-/* Main accuracy and hits panel, also displaying the strains graph and map BG */
+/* Main accuracy and hits panel, also displaying the strains chart and map BG */
 #accSection {
     grid-column: 1;
     grid-row: 2;
@@ -97,7 +97,7 @@ html {
     font-size: 15px;
 }
 
-#graph {
+#chart {
     width: 300px;
     height: 150px;
     padding-right: 10px;
@@ -112,16 +112,13 @@ html {
     padding-right: 10px;
 }
 
-#graph>hr {
+#chart>hr {
     height: 2px;
     border: none;
     margin: 0px;
     border-radius: 5px;
     /* default border color, changes with bg */
     background-color: #36849C;
-
-    /* chart is not padding correctly for some reason */
-    transform: translate(0px, -1px);
 }
 
 
@@ -236,7 +233,7 @@ html {
     filter: blur(2px);
 }
 
-/* Main accuracy and hits panel, also displaying the strains graph and map BG */
+/* Main accuracy and hits panel, also displaying the strains chart and map BG */
 #playerSection {
     grid-column: 1;
     grid-row: 2;
