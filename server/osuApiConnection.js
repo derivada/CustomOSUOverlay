@@ -6,8 +6,10 @@ require('dotenv').config();
 let osuOAuthKey
 
 async function connect() {
-  const osuApiKey = process.env.OSU_KEY
-  console.log(osuApiKey)
+  if (!process.env.OSU_KEY) {
+    throw Error("Login error! Couldn't find the private API key (read index.js comments)")
+  }
+
   await fetch("https://osu.ppy.sh/oauth/token", {
     method: 'post',
     headers: {
@@ -17,31 +19,18 @@ async function connect() {
     body: JSON.stringify({
       "grant_type": "client_credentials",
       "client_id": 8942,
-      "client_secret": osuApiKey,
+      "client_secret": process.env.OSU_KEY,
       "scope": "public"
     })
   }).then(response => {
     return response.json();
   }).then(key => {
-    if (key != null || key.access_token != null) {
+    if (key && key.access_token) {
       osuOAuthKey = key.access_token
+    } else {
+      throw Error("Login error! The OAuth key wasn't received from the API.")
     }
   });
-}
-
-// Get basic beatmap information
-function getBeatmap(id) {
-  let headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": `Bearer ${osuOAuthKey}`
-  };
-  console.log("GET https://osu.ppy.sh/api/v2/beatmaps/" + id)
-  console.log(headers.Authorization)
-  return fetch("https://osu.ppy.sh/api/v2/beatmaps/" + id, {
-    method: "GET",
-    headers,
-  }).then(response => response.json());
 }
 
 // Get my user data
@@ -74,7 +63,10 @@ async function getUserJSON(user, mode = "osu") {
 
 async function getUserData(user, mode = "osu") {
   let jsonData = await getUserJSON(user, mode)
+  console.log("avatar url:", jsonData.avatar_url)
   let avatar = downloadImage(jsonData.avatar_url, "..\\img\\avatar.png")
+  console.log("flag url:", `https://www.countryflags.io/${jsonData.country_code}/shiny/64.png`)
+
   let flag = downloadImage(`https://www.countryflags.io/${jsonData.country_code}/shiny/64.png`,
     "..\\img\\flag.png")
   await Promise.all([avatar, flag]);
@@ -100,15 +92,16 @@ async function login() {
   if (osuOAuthKey === '') {
     console.log("Already connected")
   } else {
-    await connect()
-    console.log("Sucessfully connected")
+    await connect().then(() => {
+      console.log("Successfully connected!")
+    }).catch(err => {
+      console.log(err.message)
+    })
   }
 }
 
-
 module.exports = {
   login,
-  getBeatmap,
   getUserJSON,
   getUserData
 }

@@ -188,13 +188,42 @@ let SRChart
 createChart()
 const CHART_DETAIL = 100
 
+// Player Section
+let avatar = document.getElementById("avatar")
+let playerName = document.getElementById("playerName")
+let globalRank = document.getElementById("globalRank")
+let countryFlag = document.getElementById("countryFlag")
+let countryRank = document.getElementById("countryRank")
+let lastPlayer = ''
+
 // On new data from the player data server
 playerDataSocket.onmessage = event => {
-    let player = JSON.parse(event.data)
     // Check player data example in server/exampleData.txt 
     // User avatar should be available at img/avatar.png and country flag at img/flag.png 
+    let data = JSON.parse(event.data)
+    if (!lastPlayer || (data && data.playerName && (data.playerName != lastPlayer || playerName.innerHTML != playerName))) {
+        lastPlayer = data.playerName
+        updatePlayerData(data)
+    }
+}
 
+function updatePlayerData(data) {
+    playerName.innerHTML = data.username
+    globalRank.innerHTML = "#" + data.global_rank
+    countryRank.innerHTML = "#" + data.country_rank
+    avatar.setAttribute("src", `img/avatar.png?a=${Math.random(10000)}`)
+    countryFlag.setAttribute("src", `img/flag.png?a=${Math.random(10000)}`)
 
+    getColorPalette(`img/avatar.png?a=${Math.random(10000)}`).then(palette => {
+        avatar.style.boxShadow = "2.5px 2.5px 5px " + getRGBAfromHEX(palette.darkvibrant, 0.8)
+        let preFooterLine = document.getElementById("preFooterLine")
+        let footerLine = document.getElementById("footerLine")
+        preFooterLine.style.background = `linear-gradient(to left, ${palette.darkvibrant}, transparent)`
+        footerLine.style.background = `linear-gradient(to right, ${palette.darkvibrant}, transparent)`
+
+    }).catch(() => {
+        console.log("Couldn't get user avatar custom color palette")
+    })
 }
 
 // On new data from gosumemory
@@ -202,9 +231,6 @@ gosumemorySocket.onmessage = event => {
 
     // Data JSON example: https://github.com/l3lackShark/gosumemory/wiki/JSON-values
     // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
-    if (packetNumber == 0) {
-        console.log(event)
-    }
 
     let data = JSON.parse(event.data),
         menu = data.menu,
@@ -242,7 +268,7 @@ gosumemorySocket.onmessage = event => {
     }
 
     // Update keys 
-    updateKeys(gameplay.keyOverlay);
+    //updateKeys(gameplay.keyOverlay);
 
     // Background image
     if (imgValue !== map.path.full) {
@@ -250,6 +276,7 @@ gosumemorySocket.onmessage = event => {
         let img = map.path.full.replace(/#/g, '%23').replace(/%/g, '%25')
 
         // Not sure what the ?a= part is doing
+        // Now I know! It's for the browser to always detect a change in the image!
         let imgPath = `http://127.0.0.1:24050/Songs/${img}?a=${Math.random(10000)}`
         accBG.setAttribute('src', imgPath)
         setCustomColors(imgPath)
@@ -276,7 +303,6 @@ gosumemorySocket.onmessage = event => {
     // SR
     if (map.stats.fullSR != srValue) {
         srValue = map.stats.fullSR
-        console.log('SR: ' + srValue)
         //sr.innerHTML = srValue
     }
     // CS
