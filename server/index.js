@@ -35,6 +35,8 @@ inputSocket.onmessage = (e) => {
     gameplay = data.gameplay,
     menu = data.menu
 
+  /*
+  TODO if leaderboard is implemented
   if (menu.bm.id != lastMapID) {
     console.log("New beatmap detected, fetching leadeboard")
     lastMapID = menu.bm.id
@@ -44,7 +46,7 @@ inputSocket.onmessage = (e) => {
     }).then(data => {
       console.log("Leaderboard ready")
     }).catch(err => console.log("Error fetching leaderboards:", err))
-  }
+  }*/
 
   if (gameplay.name != lastPlayer) {
     if (dataSender) {

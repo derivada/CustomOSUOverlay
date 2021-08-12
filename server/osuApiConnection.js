@@ -124,7 +124,7 @@ function getBeatmapScores(beatmapID, mode = "osu", mods = "") {
     headers: authHeader,
   }).then(checkStatus).then(res => res.json()).then((data) => {
     //console.log(data)
-    fs.writeFile("debugScores.txt", JSON.stringify(data, null, 4), console.log)
+    //fs.writeFile("debugScores.txt", JSON.stringify(data, null, 4), console.log)
 
   }).catch(console.log)
 }

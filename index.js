@@ -108,12 +108,13 @@ class UsefulData {
         // UR Section
         this.ur = data.gameplay.hits.unstableRate
 
-        // Key Section
+        // Key Section. It is too slow to work so far, lags a lot on streams sadly
+        /*
         this.k1State = data.gameplay.keyOverlay.k1.isPressed
         this.k1Count = data.gameplay.keyOverlay.k1.count
         this.k2State = data.gameplay.keyOverlay.k2.isPressed
         this.k2Count = data.gameplay.keyOverlay.k2.count
-
+        */
         // Mods section
         this.mods = data.menu.mods.str
     }
@@ -164,18 +165,34 @@ class UsefulData {
         // UR Section
         ur: () => urAnimation.ur.update(this.ur),
 
-        // Key Section
-        k1State: undefined,
-        k1Count: undefined,
-        k2State: undefined,
-        k2Count: undefined,
+        /*
+        k1State: () => {
+            if (this.k1State) {
+                xKey.style.backgroundColor = "#10637c"
+                xKey.style.color = "#e0e0e0"
+            } else {
+                xKey.style.backgroundColor = "#e0e0e0"
+                xKey.style.color = "#10637c"
+            }
+        },
+        k1Count: () => x.innerHTML = this.k1Count,
+        k2State: () => {
+            if (this.k2State) {
+                zKey.style.backgroundColor = "#10637c"
+                zKey.style.color = "#e0e0e0"
+            } else {
+                zKey.style.backgroundColor = "#e0e0e0"
+                zKey.style.color = "#10637c"
+            }
+        },
+        k2Count: () => z.innerHTML = this.k2Count,
+        */
 
         // Mods section
         mods: () => updateMods(this.mods)
     }
 }
 
-let lastPlayer = ""
 
 /* CountUp animation objects */
 // Syntax: new CountUp(target, startVal, endVal, decimals, duration, options)
@@ -251,12 +268,13 @@ let SRChart
 createChart()
 
 // On new data from the player data server. Data arrives every second if a replay is active
+let lastPlayer = ""
 playerDataSocket.onmessage = event => {
     // Check player data example in server/exampleData.txt 
     // User avatar should be available at img/avatar.png and country flag at img/flag.png 
     let data = JSON.parse(event.data)
-    if (!lastPlayer || (data && data.playerName && (data.playerName != lastPlayer || playerName.innerHTML != playerName))) {
-        lastPlayer = data.playerName
+    if (!lastPlayer || (data.username && (data.username != lastPlayer || playerName.innerHTML != data.username))) {
+        lastPlayer = data.username
         updatePlayerData(data)
     }
 }
@@ -320,7 +338,6 @@ function update() {
         resolve(Date.now() - initTime)
     })
 }
-
 
 // Update the mods section
 function updateMods(newMods) {
@@ -542,41 +559,7 @@ function getChartGradient(ctx, chartArea,
     gradient.addColorStop(1.0, notCompletedColor)
     return gradient
 }
-/*
-function updateKeys(keyData) {
-    // Checks if key is pressed to change the styling
-    if (keyData.k1.isPressed !== lastK1State) {
-        lastK1State = keyData.k1.isPressed
-        if (lastK1State) {
-            xKey.style.backgroundColor = "#10637c"
-            xKey.style.color = "#e0e0e0"
-        } else {
-            xKey.style.backgroundColor = "#e0e0e0"
-            xKey.style.color = "#10637c"
-        }
-    }
-    if (keyData.k2.isPressed !== lastK2State) {
-        lastK2State = keyData.k2.isPressed
-        if (lastK2State) {
-            zKey.style.backgroundColor = "#10637c"
-            zKey.style.color = "#e0e0e0"
-        } else {
-            zKey.style.backgroundColor = "#e0e0e0"
-            zKey.style.color = "#10637c"
-        }
-    }
 
-    // Updates key count
-    if (lastK1Count !== keyData.k1.count) {
-        lastK1Count = keyData.k1.count
-        x.innerHTML = lastK1Count
-    }
-    if (lastK2Count !== keyData.k2.count) {
-        lastK2Count = keyData.k2.count
-        z.innerHTML = lastK2Count
-    }
-}
-*/
 /* Find predominant color in image using the Vibrant.js library and apply it to the UI */
 function setCustomColors(path) {
     getColorPalette(path).then(palette => {
