@@ -38,16 +38,18 @@ async function connect() {
   });
 }
 
-async function login() {
-  if (osuOAuthKey === '') {
-    console.log("Already connected to the osu!API")
-  } else {
-    await connect().then(() => {
-      console.log("Successfully connected to the osu!API")
-    }).catch(err => {
-      console.log("Error while logging:", err)
-    })
-  }
+function login() {
+  return new Promise((resolve, reject) => {
+    if (osuOAuthKey === '') {
+      resolve("Already connected to the osu!API")
+    } else {
+      connect().then(() => {
+        resolve("Connected to the API!")
+      }).catch(err => {
+        reject("Error while logging:", err)
+      })
+    }
+  })
 }
 
 // Get user JSON data
@@ -69,7 +71,7 @@ async function getUserData(user, mode = "osu") {
   /*
     For debugging
     
-    fs.writeFile("debug.txt", JSON.stringify(jsonData, null, 4), function (err) {
+    fs.writeFile("debugUsers.txt", JSON.stringify(jsonData, null, 4), function (err) {
       if (err) {
         console.log(err);
       }
@@ -102,7 +104,41 @@ async function downloadImage(url, dest) {
     console.log(`Downloaded ${dest.substring(dest.lastIndexOf("\\") + 1)}`));
 }
 
+
+
+function getBeatmapScores(beatmapID, mode = "osu", mods = "") {
+  let url = new URL(`https://osu.ppy.sh/api/v2/beatmaps/${beatmapID}/scores`)
+
+  let params = {
+    /*"mode": mode,
+    "mods": mods*/
+  }
+
+  Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+
+  //console.log(url)
+ // console.log(authHeader)
+
+  fetch(url, {
+    method: "GET",
+    headers: authHeader,
+  }).then(checkStatus).then(res => res.json()).then((data) => {
+    //console.log(data)
+    fs.writeFile("debugScores.txt", JSON.stringify(data, null, 4), console.log)
+
+  }).catch(console.log)
+}
+
+function checkStatus(res) {
+  if (res.ok) { // res.status >= 200 && res.status < 300
+    return res;
+  } else {
+    throw Error(res.status);
+  }
+}
+
 module.exports = {
   login,
-  getUserData
+  getUserData,
+  getBeatmapScores
 }

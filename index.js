@@ -72,22 +72,108 @@ let globalRank = document.getElementById("globalRank")
 let countryFlag = document.getElementById("countryFlag")
 let countryRank = document.getElementById("countryRank")
 
+// Mod section
+let mods = document.getElementById("mods")
 
 
-/* Temporal (last-updated) values */
-let lastMapID = 0, lastMapStrains = [], lastMapBG = ""
+let completionPercent = 0.0
+let strains = [] // they are inefficient if inside UsefulData, only check for updates after mapID changes
 
-let currentTime = 0, lastCompletionPercentage = 0, lastMapObjectsTime = 0
+class UsefulData {
+    // This class acts as an intermediary between the raw JSON received and
+    // the variables from it that we are actually going to use
+    // It also defines the methods that are called when we update the data (see update())
+    constructor(data) {
+        // Time variables
+        this.mapObjectsTime = data.menu.bm.time.full - data.menu.bm.time.firstObj
+        this.currentTime = data.menu.bm.time.current
 
-let lastAcc = 0, lastGrade = "D"
+        // Map varibles
+        this.mapID = data.menu.bm.id
+        this.mapBG = data.menu.bm.path.full
 
-let lastPP = 0, lastCombo = 0
+        // Acc section
+        this.hdfl = (data.menu.mods.str.includes("HD") || data.menu.mods.str.includes("FL") ? true : false)
+        this.acc = data.gameplay.accuracy
+        this.grade = data.gameplay.hits.grade.current
+        this.hits100 = data.gameplay.hits[100]
+        this.hits50 = data.gameplay.hits[50]
+        this.hits0 = data.gameplay.hits[0]
+        this.sb = data.gameplay.hits.sliderBreaks
 
-let last100Count = 0, last50Count = 0, lastMissCount = 0, lastSBCount = 0
+        // PP and combo Section
+        this.pp = data.gameplay.pp.current
+        this.combo = data.gameplay.combo.current
 
-let lastUR = 0
+        // UR Section
+        this.ur = data.gameplay.hits.unstableRate
 
-let lastK1Count = 0, lastK1State = "", lastK2Count = 0, lastK2State = ""
+        // Key Section
+        this.k1State = data.gameplay.keyOverlay.k1.isPressed
+        this.k1Count = data.gameplay.keyOverlay.k1.count
+        this.k2State = data.gameplay.keyOverlay.k2.isPressed
+        this.k2Count = data.gameplay.keyOverlay.k2.count
+
+        // Mods section
+        this.mods = data.menu.mods.str
+    }
+
+    onUpdate = {
+        mapObjectsTime: undefined,
+        currentTime: () => {
+            completionPercent = parseFloat((this.currentTime / this.mapObjectsTime).toFixed(3))
+            if (completionPercent > 1.0)
+                completionPercent = 1.0
+            if (completionPercent < 0.0)
+                completionPercent = 0.0
+
+            SRChart.update()
+        },
+
+        // Map variables
+        mapID: () => refreshChart(rawData.menu.pp.strains),
+        mapBG: () => {
+            let fixedImg = this.mapBG.replace(/#/g, '%23').replace(/%/g, '%25')
+
+            // Not sure what the ?a= part is doing
+            // Now I know! It's for the browser to always detect a change in the image!
+            let path = `http://127.0.0.1:24050/Songs/${fixedImg}?a=${Math.random(10000)}`
+            accBG.setAttribute('src', path)
+            setCustomColors(path)
+        },
+
+        // Acc section
+        hdfl: undefined,
+        acc: () => {
+            accAnimation.acc.update(Math.floor(this.acc))
+            accDecimalsAnimation.acc.update(((this.acc % 1) * 100).toFixed(0))
+        },
+        grade: () => {
+            grade.innerHTML = this.grade
+            updateGradeStyle(this.grade, this.hdfl)
+        },
+        hits100: () => hun.innerHTML = this.hits100,
+        hits50: () => fifty.innerHTML = this.hits50,
+        hits0: () => miss.innerHTML = this.hits0,
+        sb: () => sb.innerHTML = this.sb,
+
+        // PP and combo Section
+        pp: () => ppAnimation.pp.update(this.pp),
+        combo: () => comboAnimation.combo.update(this.combo),
+
+        // UR Section
+        ur: () => urAnimation.ur.update(this.ur),
+
+        // Key Section
+        k1State: undefined,
+        k1Count: undefined,
+        k2State: undefined,
+        k2Count: undefined,
+
+        // Mods section
+        mods: () => updateMods(this.mods)
+    }
+}
 
 let lastPlayer = ""
 
@@ -139,6 +225,26 @@ let comboAnimation = {
     }),
 }
 
+/* Mod images */
+const modsImgs = {
+    'ez': './img/mods/easy.png',
+    'nf': './img/mods/nofail.png',
+    'ht': './img/mods/halftime.png',
+    'hr': './img/mods/hardrock.png',
+    'sd': './img/mods/suddendeath.png',
+    'pf': './img/mods/perfect.png',
+    'dt': './img/mods/doubletime.png',
+    'nc': './img/mods/nightcore.png',
+    'hd': './img/mods/hidden.png',
+    'fl': './img/mods/flashlight.png',
+    'rx': './img/mods/relax.png',
+    'ap': './img/mods/autopilot.png',
+    'so': './img/mods/spunout.png',
+    'at': './img/mods/autoplay.png',
+    'cn': './img/mods/cinema.png',
+    'v2': './img/mods/v2.png',
+}
+
 /* SRChart initialization */
 const CHART_DETAIL = 100
 let SRChart
@@ -168,92 +274,89 @@ function updatePlayerData(data) {
         let footerLine = document.getElementById("footerLine")
         preFooterLine.style.background = `linear-gradient(to left, ${palette.darkvibrant}, transparent)`
         footerLine.style.background = `linear-gradient(to right, ${palette.darkvibrant}, transparent)`
-
     }).catch(() => {
         console.log("Couldn't get user avatar custom color palette")
     })
 }
+
+let oldData = {},
+    newData = {},
+    rawData
+
+let UPDATE_WARNING = 80
+let avgUpdateTime
+let lastTimes = []
+let lastTimesIndex = 0
 
 // On new data from gosumemory. Data arrives every 100ms
 gosumemorySocket.onmessage = event => {
     // Data JSON example: https://github.com/l3lackShark/gosumemory/wiki/JSON-values
     // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
 
-    let data = JSON.parse(event.data),
-        menu = data.menu,
-        map = menu.bm,
-        gameplay = data.gameplay,
-        hdfl = (data.menu.mods.str.includes("HD") || data.menu.mods.str.includes("FL") ? true : false)
-
-    // Map ID
-    update(map.id, lastMapID, (newValue) => {
-        if (lastMapStrains !== menu.pp.strains) {
-            lastMapStrains = menu.pp.strains
-            refreshChart(lastMapStrains)
-        }
+    rawData = JSON.parse(event.data)
+    newData = new UsefulData(rawData)
+    update().then((time) => {
+        lastTimes[lastTimesIndex] = time
+        if (lastTimesIndex == 9)
+            lastTimesIndex = 0
+        else
+            lastTimesIndex++
+        avgUpdateTime = lastTimes.reduce((total, val) => total + val, 0) / lastTimes.length
+        if (avgUpdateTime > UPDATE_WARNING)
+            console.log("Average update time it's too big:", avgUpdateTime)
     })
-
-    // Time and completion percentage
-    if (lastMapObjectsTime !== map.time.full - map.time.firstObj) {
-        lastMapObjectsTime = map.time.full - map.time.firstObj
-    }
-    if (currentTime !== map.time.current) {
-        currentTime = map.time.current
-        let completionTemp = parseFloat((currentTime / lastMapObjectsTime).toFixed(3))
-        if (completionTemp > 1.0)
-            completionTemp = 1.0
-        if (completionTemp < 0.0)
-            completionTemp = 0.0
-        if (completionTemp !== lastCompletionPercentage) {
-            lastCompletionPercentage = completionTemp
-            SRChart.update()
-        }
-    }
-
-    // Background image
-    update(map.path.full, lastMapBG, (newValue) => {
-        let fixedImg = newValue.replace(/#/g, '%23').replace(/%/g, '%25')
-
-        // Not sure what the ?a= part is doing
-        // Now I know! It's for the browser to always detect a change in the image!
-        let path = `http://127.0.0.1:24050/Songs/${fixedImg}?a=${Math.random(10000)}`
-        accBG.setAttribute('src', path)
-        setCustomColors(path)
-    })
-
-    // Accuracy
-    update(gameplay.accuracy, lastAcc, (newValue) => {
-        accAnimation.acc.update(Math.floor(newValue))
-        accDecimalsAnimation.acc.update(((newValue % 1) * 100).toFixed(0))
-    })
-    // Play grade (SS, S, A...)
-    update(gameplay.hits.grade.current, lastGrade, (newValue) => {
-        grade.innerHTML = newValue
-        updateGradeStyle(newValue, hdfl)
-    })
-
-    // Hits
-    update(gameplay.hits[100], last100Count, (newValue) => hun.innerHTML = newValue)
-    update(gameplay.hits[50], last50Count, (newValue) => fifty.innerHTML = newValue)
-    update(gameplay.hits[0], lastMissCount, (newValue) => miss.innerHTML = newValue)
-    update(gameplay.hits.sliderBreaks, lastSBCount, (newValue) => sb.innerHTML = newValue)
-
-    // PP and Combo
-    update(gameplay.pp.current, lastPP, ppAnimation.pp.update)
-    update(gameplay.combo.current, lastCombo, comboAnimation.combo.update)
-
-    // UR
-    update(gameplay.hits.unstableRate, lastUR, urAnimation.ur.update)
-
-    // Keys
-    //updateKeys(gameplay.keyOverlay)
+    oldData = newData
 }
 
-function update(newValue, savedValue, callback) {
-    // Update a variable with a new value and call the function on it
-    if (newValue != savedValue) {
-        savedValue = newValue
-        callback(savedValue)
+function update() {
+    // Call the updating function on that property of newData if it exists and the value has changed from the last object oldData
+    return new Promise((resolve) => {
+        let initTime = Date.now()
+        for (var prop in newData) {
+            if ((oldData[prop] != newData[prop]) && newData.onUpdate[prop] != undefined) {
+                newData.onUpdate[prop]()
+            }
+        }
+        resolve(Date.now() - initTime)
+    })
+}
+
+
+// Update the mods section
+function updateMods(newMods) {
+    if (newMods == "" || newMods == "NM") {
+        mods.innerHTML = ''
+    } else {
+        mods.innerHTML = ''
+        let modsApplied = newMods.toLowerCase()
+        console.log("MODS APPLIED:", modsApplied)
+        if (modsApplied.indexOf('nc') != -1) {
+            modsApplied = modsApplied.replace('dt', '')
+        }
+        if (modsApplied.indexOf('pf') != -1) {
+            modsApplied = modsApplied.replace('sd', '')
+        }
+        let modsArr = modsApplied.match(/.{1,2}/g)
+        for (let i = 0; i < modsArr.length; i++) {
+            /*
+            ejemplo:
+                <div id="mods">
+                    <div classs="mod">
+                        <img src="./img/mods/dt"/>"
+                    </div>
+                <div id="mods">
+                    <div classs="mod">
+                        <img src="./img/mods/hd"/>"
+                    </div>
+                </div>
+            */
+            let mod = document.createElement('div')
+            mod.setAttribute('class', 'mod')
+            let modImg = document.createElement('img')
+            modImg.setAttribute('src', modsImgs[modsArr[i]] + `?a=${Math.random(10000)}`)
+            mod.appendChild(modImg)
+            mods.appendChild(mod)
+        }
     }
 }
 
@@ -401,14 +504,11 @@ function refreshChart(values) {
     // This guarantees the array will not be bigger than CHART_DETAIL * 2
     let smoothValues = []
     if (trimmedValues.length > CHART_DETAIL * 2) {
-        console.log(trimmedValues)
         let mod = Math.floor(trimmedValues.length / CHART_DETAIL)
         for (let n = 0; n <= trimmedValues.length; n++) {
             if (n % mod == 0)
                 smoothValues.push(trimmedValues[n])
         }
-        console.log(smoothValues)
-
     } else {
         smoothValues = trimmedValues
     }
@@ -437,12 +537,12 @@ function getChartGradient(ctx, chartArea,
 
     let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
     gradient.addColorStop(0, completedColor)
-    gradient.addColorStop(Math.min(lastCompletionPercentage, 1.0), completedColor)
-    gradient.addColorStop(Math.min(lastCompletionPercentage, 1.0), notCompletedColor)
+    gradient.addColorStop(Math.min(completionPercent, 1.0), completedColor)
+    gradient.addColorStop(Math.min(completionPercent, 1.0), notCompletedColor)
     gradient.addColorStop(1.0, notCompletedColor)
     return gradient
 }
-
+/*
 function updateKeys(keyData) {
     // Checks if key is pressed to change the styling
     if (keyData.k1.isPressed !== lastK1State) {
@@ -476,7 +576,7 @@ function updateKeys(keyData) {
         z.innerHTML = lastK2Count
     }
 }
-
+*/
 /* Find predominant color in image using the Vibrant.js library and apply it to the UI */
 function setCustomColors(path) {
     getColorPalette(path).then(palette => {

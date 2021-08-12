@@ -119,6 +119,9 @@ html {
     border-radius: 5px;
     /* default border color, changes with bg */
     background-color: #36849C;
+
+    /* adjust a bit */
+    transform: translate(0px, -1px);
 }
 
 
@@ -390,28 +393,43 @@ html {
     align-items: center;
 }
 
+#modSection {
+    grid-column: 1;
+    grid-row: 2;
+    margin: auto auto auto 10px;
+    transform: translate(0, -250px);
+
+    width: 375px;
+    height: 60px;
+    color: rgb(207, 207, 207);
+}
+
 #mods {
-    position: fixed;
+    flex-wrap: nowrap;
+    height: 60px;
+    width: 375px;
     display: flex;
-    bottom: 120px;
-    right: 20px;
-    justify-items: flex-end;
-    margin-right: 25px;
+    justify-content: flex-start;
+}
+
+.mod{
+    height: 60px;
+    width: 60px;
+    margin: 0 5px 0 5px;
 }
 
 .mod img {
-    position: relative;
-    height: 50px;
-    width: 50px;
+    height: 60px;
+    width: 60px;
     z-index: 1;
     object-fit: cover;
-    margin-right: -25px;
     -webkit-filter: drop-shadow(-5px 5px 5px rgba(0, 0, 0, 0.7));
     -moz-filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
     -ms-filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
     -o-filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
     filter: drop-shadow(-5px 5px 10px rgba(0, 0, 0, 0.7));
 }
+
 
 .text {
     display: flex;

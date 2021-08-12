@@ -28,9 +28,23 @@ const sendRate = 1000
 let dataSender
 let packetsSent = 0
 
+let lastMapID
+
 inputSocket.onmessage = (e) => {
   let data = JSON.parse(e.data),
-    gameplay = data.gameplay
+    gameplay = data.gameplay,
+    menu = data.menu
+
+  if (menu.bm.id != lastMapID) {
+    console.log("New beatmap detected, fetching leadeboard")
+    lastMapID = menu.bm.id
+    osu.login().then((info) => {
+      console.log(info)
+      osu.getBeatmapScores(lastMapID)
+    }).then(data => {
+      console.log("Leaderboard ready")
+    }).catch(err => console.log("Error fetching leaderboards:", err))
+  }
 
   if (gameplay.name != lastPlayer) {
     if (dataSender) {
