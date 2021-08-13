@@ -33,7 +33,6 @@ let lastMapID
 inputSocket.onmessage = (e) => {
   let data = JSON.parse(e.data),
     gameplay = data.gameplay,
-    menu = data.menu
 
   /*
   TODO if leaderboard is implemented

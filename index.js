@@ -108,13 +108,6 @@ class UsefulData {
         // UR Section
         this.ur = data.gameplay.hits.unstableRate
 
-        // Key Section. It is too slow to work so far, lags a lot on streams sadly
-        /*
-        this.k1State = data.gameplay.keyOverlay.k1.isPressed
-        this.k1Count = data.gameplay.keyOverlay.k1.count
-        this.k2State = data.gameplay.keyOverlay.k2.isPressed
-        this.k2Count = data.gameplay.keyOverlay.k2.count
-        */
         // Mods section
         this.mods = data.menu.mods.str
     }
@@ -128,6 +121,7 @@ class UsefulData {
             if (completionPercent < 0.0)
                 completionPercent = 0.0
 
+            // 99% of the performance is lost here (from 0-1ms to process to 30ms)
             SRChart.update()
         },
 
@@ -164,29 +158,6 @@ class UsefulData {
 
         // UR Section
         ur: () => urAnimation.ur.update(this.ur),
-
-        /*
-        k1State: () => {
-            if (this.k1State) {
-                xKey.style.backgroundColor = "#10637c"
-                xKey.style.color = "#e0e0e0"
-            } else {
-                xKey.style.backgroundColor = "#e0e0e0"
-                xKey.style.color = "#10637c"
-            }
-        },
-        k1Count: () => x.innerHTML = this.k1Count,
-        k2State: () => {
-            if (this.k2State) {
-                zKey.style.backgroundColor = "#10637c"
-                zKey.style.color = "#e0e0e0"
-            } else {
-                zKey.style.backgroundColor = "#e0e0e0"
-                zKey.style.color = "#10637c"
-            }
-        },
-        k2Count: () => z.innerHTML = this.k2Count,
-        */
 
         // Mods section
         mods: () => updateMods(this.mods)
@@ -306,24 +277,53 @@ let avgUpdateTime
 let lastTimes = []
 let lastTimesIndex = 0
 
-// On new data from gosumemory. Data arrives every 100ms
+let k1State = false,
+    k1Count = 0,
+    k2State = false,
+    k2Count = 0
+
+// A class for measuring how fast the calculations are done
+class TimeMeasurer {
+    constructor(warningTime) {
+        this._lastTimes = []
+        this._lastTimesIndex = 0
+
+        this.averageTime = 0
+        this.warningTime = warningTime
+    }
+    addToAverage(time) {
+        this._lastTimes[this._lastTimesIndex] = time
+        if (this._lastTimesIndex == 9)
+            this._lastTimesIndex = 0
+        else
+            this._lastTimesIndex++
+        this.averageTime = this._lastTimes.reduce((total, val) => total + val, 0) / this._lastTimes.length
+        if (this.averageTime > this.warningTime) console.log(`Key processing taking longer than usual (${this.averageTime}ms)`)
+        return this.averageTime
+    }
+}
+
+let fullTimeMeasurer = new TimeMeasurer(80)
+let keyTimeMeasurer = new TimeMeasurer(2)
+
+// On new data from gosumemory. Data arrives every 20ms (THIS IS MODIFIED FROM DEFAULT IN ORDER TO MAKE THE KEY OVERLAY WORK)
+let packetNumber = 0
+
 gosumemorySocket.onmessage = event => {
     // Data JSON example: https://github.com/l3lackShark/gosumemory/wiki/JSON-values
     // Game States list: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/99e2014447f6d5e5ba3943076bc8210b6498db5c/OsuMemoryDataProvider/OsuMemoryStatus.cs#L3
-
+    packetNumber++
     rawData = JSON.parse(event.data)
-    newData = new UsefulData(rawData)
-    update().then((time) => {
-        lastTimes[lastTimesIndex] = time
-        if (lastTimesIndex == 9)
-            lastTimesIndex = 0
-        else
-            lastTimesIndex++
-        avgUpdateTime = lastTimes.reduce((total, val) => total + val, 0) / lastTimes.length
-        if (avgUpdateTime > UPDATE_WARNING)
-            console.log("Average update time it's too big:", avgUpdateTime)
-    })
-    oldData = newData
+
+    // Main data updating, only once every 5 packets (100ms) usually takes around 40ms to process
+    if (packetNumber % 5 == 0) {
+        newData = new UsefulData(rawData)
+        update().then(time => fullTimeMeasurer.addToAverage(time)).then(console.log)
+        oldData = newData
+    }
+
+    // Key updating, every packet (20ms) usually takes around 1ms to process
+    updateKeys().then(time => keyTimeMeasurer.addToAverage(time))
 }
 
 function update() {
@@ -338,6 +338,43 @@ function update() {
         resolve(Date.now() - initTime)
     })
 }
+
+function updateKeys() {
+    // Update the keys in the traditional way
+    return new Promise((resolve) => {
+        let initTime = Date.now()
+        if (k1State != rawData.gameplay.keyOverlay.k1.isPressed) {
+            k1State = rawData.gameplay.keyOverlay.k1.isPressed
+            if (k1State) {
+                xKey.style.backgroundColor = "#10637c"
+                xKey.style.color = "#e0e0e0"
+            } else {
+                xKey.style.backgroundColor = "#e0e0e0"
+                xKey.style.color = "#10637c"
+            }
+        }
+        if (k1Count != rawData.gameplay.keyOverlay.k1.count) {
+            k1Count = rawData.gameplay.keyOverlay.k1.count
+            x.innerHTML = k1Count
+        }
+        if (k2State != rawData.gameplay.keyOverlay.k2.isPressed) {
+            k2State = rawData.gameplay.keyOverlay.k2.isPressed
+            if (k2State) {
+                zKey.style.backgroundColor = "#10637c"
+                zKey.style.color = "#e0e0e0"
+            } else {
+                zKey.style.backgroundColor = "#e0e0e0"
+                zKey.style.color = "#10637c"
+            }
+        }
+        if (k2Count != rawData.gameplay.keyOverlay.k2.count) {
+            k2Count = rawData.gameplay.keyOverlay.k2.count
+            z.innerHTML = k2Count
+        }
+        resolve(Date.now() - initTime)
+    })
+}
+
 
 // Update the mods section
 function updateMods(newMods) {
@@ -355,18 +392,6 @@ function updateMods(newMods) {
         }
         let modsArr = modsApplied.match(/.{1,2}/g)
         for (let i = 0; i < modsArr.length; i++) {
-            /*
-            ejemplo:
-                <div id="mods">
-                    <div classs="mod">
-                        <img src="./img/mods/dt"/>"
-                    </div>
-                <div id="mods">
-                    <div classs="mod">
-                        <img src="./img/mods/hd"/>"
-                    </div>
-                </div>
-            */
             let mod = document.createElement('div')
             mod.setAttribute('class', 'mod')
             let modImg = document.createElement('img')
@@ -551,7 +576,6 @@ function refreshChart(values) {
 function getChartGradient(ctx, chartArea,
     completedColor = 'rgba(230, 230, 230, 0.5)',
     notCompletedColor = 'rgba(230, 230, 230, 0.2)') {
-
     let gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
     gradient.addColorStop(0, completedColor)
     gradient.addColorStop(Math.min(completionPercent, 1.0), completedColor)
