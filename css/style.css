@@ -7,34 +7,55 @@ html {
     overflow-y: hidden; */
 }
 
+:root {
+    --screen-width: 2560px;
+    --screen-height: 1440px;
+    --base-font-size: 20px;
+    --base-font-weight: 500;
+    --base-font-family: "Roboto";
+
+    /* computed variables (see areas.txt) */
+    --aspect-ratio: calc(var(--screen-width) / var(--screen-height));
+    --beatmap-area-width: calc((var(--screen-width) * 15) / 22);
+    --horizontal-gaps-width: calc((var(--screen-width) - var(--beatmap-area-width)) / 2);
+    --beatmap-area-height: calc((var(--screen-height) * 125) / 132);
+    --lower-gap-width: calc((var(--screen-height) - var(--beatmap-area-height)) / 5.7);
+    --upper-gap-width: calc(var(--lower-gap-width) * 4.7);
+}
+
 
 #main {
     /* uncommented for debugging */
-    background: black;
-    display: grid;
-    grid-template-rows: 63px 1363px auto;
-    grid-template-columns: 408px 1745px auto;
-    font-size: 20px;
+    /* background: black; */
     position: absolute;
-    width: 2560px;
-    height: 1440px;
+    display: grid;
+    margin: 0px;
+    padding: 0px;
+    width: var(--screen-width);
+    height: var(--screen-height);
+    grid-template-rows: var(--upper-gap-width) var(--beatmap-area-height) auto;
+    grid-template-columns: var(--horizontal-gaps-width) var(--beatmap-area-width) auto;
+    font-size: var(--base-font-size);
+    width: var(--screen-width);
+    height: var(--screen-height);
     font-weight: bold;
     -webkit-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     -moz-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     -ms-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     -o-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
     filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.4));
-    font-family: "Roboto", sans-serif;
-    font-weight: 500;
+    font-family: var(--base-font-family), sans-serif;
+    font-weight: var(--base-font-weight);
 }
 
 /* The area where the game is played, don't put any overlay over this */
 #gamearea {
     /* uncommented for debugging */
-    /* background: red; */
+    background: red;
+    opacity: 20%;
+
     grid-column: 2;
     grid-row: 2;
-    opacity: 20%;
 }
 
 /* Main accuracy and hits panel, also displaying the strains chart and map BG */

@@ -1,6 +1,6 @@
-TOTAL AREA: 2560 X 1440
+GAME RESOLUTION: 2560 X 1440 (16/9 ~ 1.777 aspect ratio)
 
-GAME AREA: 1745 X 1363
+BEATMAP AREA: 1745 X 1363 (1.28082)
 
 UPPER LEFT CORNER: 408 63
 
@@ -8,4 +8,49 @@ LOWER RIGHT CORNER: 2153 1426
 
 LATERAL MARGINS: 407 (~400)
 
-VERTICAL MARGINS: 65 UP, 20 DOWN
+VERTICAL MARGINS: 65 UP, 14 DOWN
+
+---
+
+GAME RESOLUTION: 1920 X 1080 (16/9 ~ 1.777 aspect ratio)
+
+BEATMAP AREA: 1309 X 1022 (1.28082)
+
+UPPER LEFT CORNER: 307 48
+
+LOWER RIGHT CORNER: 1615 1070
+
+LATERAL MARGINS: 305 (~300)
+
+VERTICAL MARGINS: 48 UP, 10 DOWN
+
+Formulas for 16/9 aspect ratio:
+2560 / 1745 = 1.466666... = 22/15
+1920 / 1309 = 1.466666... = 22/15
+
+beatmapAreaWidth = (screenWidth * 15) / 22
+horizontalGapsWidth = (gameResolution - beatmapAreaWidth) / 2
+
+1440 / 1363 = 1.05649 ~ 1.056 = 132/125
+1080 / 1022 = 1.05675 ~ 1.056 = 132/125
+
+beatmapAreaHeight = (screenHeight * 125) / 132
+
+(this ones are more approximated but still good enough)
+65/14 = 4.64 ~ 4.7
+48/10 = 4.8 ~ 4.7
+
+lowerGapHeight = (screenHeight - beatmapAreaHeight) / 5.7
+upperGapHeight = lowerGapHeight * 4.7
+
+And everything scales nicely: 
+1) Horizontal stuff
+    2560/1920 = 1.3333
+    1745/1309 = 1.3333
+    407/305 = 1.3333
+2) Vertical stuff  
+    1440/1080 = 1.3333
+    1363/1022 = 1.3333
+    65/48 = 1.3541 ~ 1.3333 
+    14/10 = 1.4 ~ 1.3333
+

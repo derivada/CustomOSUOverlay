@@ -676,3 +676,16 @@ function getRGBAfromHEX(hexString, opacity) {
     }
     return `rgba(${r}, ${g}, ${b}, ${opacity}) `
 }
+
+/*
+var r = document.querySelector(':root');
+var rs = getComputedStyle(r);
+console.log("Screen width:", rs.getPropertyValue('--screen-width'));
+console.log("Screen height:", rs.getPropertyValue('--screen-height'));
+console.log("Aspect ratio:", rs.getPropertyValue('--aspect-ratio'));
+console.log("Game area height:", rs.getPropertyValue('--beatmap-area-height'));
+console.log("Game area width:", rs.getPropertyValue('--beatmap-area-width'));
+console.log("Horizontal margin:", rs.getPropertyValue('--horizontal-gaps-width'));
+console.log("Upper margin:", rs.getPropertyValue('--upper-gap-width'));
+console.log("Lower margin:", rs.getPropertyValue('--lower-gap-width'));
+*/
