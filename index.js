@@ -64,6 +64,7 @@ let xKey = document.getElementById("xKey")
 let zKey = document.getElementById("zKey")
 let x = document.getElementById("x")
 let z = document.getElementById("z")
+let kps = document.getElementById("kps")
 
 // Player Section 
 let avatar = document.getElementById("avatar")
@@ -339,11 +340,32 @@ function update() {
     })
 }
 
+let KPSUpdater = null
+let KPS_REFRESH_RATE = 50
+let KPSSet = new Set()
+
 function updateKeys() {
-    // Update the keys in the traditional way
     return new Promise((resolve) => {
+
+        // Start the KPS updater after the first press
+        if ((rawData.gameplay.keyOverlay.k1.count !== 0 || rawData.gameplay.keyOverlay.k2.count !== 0) &&
+            (k1Count === 0 && k2Count === 0)) {
+            KPSUpdater = setInterval(updateKPS, KPS_REFRESH_RATE)
+        }
+
+        // Stop the KPS updater if the replay ended
+        if (rawData.menu.state != 2 && KPSUpdater) {
+            clearInterval(KPSUpdater)
+            KPSUpdater = null
+            KPSSet.clear()
+            kps.innerHTML = 0
+        }
+
+        // Key updating
         let initTime = Date.now()
+
         if (k1State != rawData.gameplay.keyOverlay.k1.isPressed) {
+
             k1State = rawData.gameplay.keyOverlay.k1.isPressed
             if (k1State) {
                 xKey.style.backgroundColor = "#10637c"
@@ -356,6 +378,8 @@ function updateKeys() {
         if (k1Count != rawData.gameplay.keyOverlay.k1.count) {
             k1Count = rawData.gameplay.keyOverlay.k1.count
             x.innerHTML = k1Count
+            KPSSet.add(Date.now())
+            updateKPS()
         }
         if (k2State != rawData.gameplay.keyOverlay.k2.isPressed) {
             k2State = rawData.gameplay.keyOverlay.k2.isPressed
@@ -370,11 +394,26 @@ function updateKeys() {
         if (k2Count != rawData.gameplay.keyOverlay.k2.count) {
             k2Count = rawData.gameplay.keyOverlay.k2.count
             z.innerHTML = k2Count
+            KPSSet.add(Date.now())
+            updateKPS()
         }
         resolve(Date.now() - initTime)
     })
 }
 
+// Update the KPS counter, this function is called on a timer every KPS_REFRES_RATE miliseconds
+// when the replay is active or when a key is pressed
+function updateKPS() {
+    let currentTime = Date.now()
+
+    // Remove from the last presses set all the timestamps from more than 1 second ago
+    KPSSet.forEach(n => {
+        if (currentTime - n > 1000)
+            KPSSet.delete(n)
+    })
+
+    kps.innerHTML = KPSSet.size
+}
 
 // Update the mods section
 function updateMods(newMods) {

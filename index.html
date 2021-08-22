@@ -86,7 +86,7 @@
             <span id="footerText">PLAYER</span>
             <hr id="footerLine">
         </div>
-
+        
         <div id="keySection" class="griditem">
             <div id="xKey" class="key">
                 <div id="x">0</div>
@@ -94,22 +94,17 @@
             <div id="zKey" class="key">
                 <div id="z">0</div>
             </div>
-        </div>
+            <div id="keysSecond">
+                <div>KPS</div>
+                <div id="kps">0</div>
+            </div>
+        </div> 
 
         <script src="deps/odometr.js"></script>
         <script src="deps/reconnecting-websocket.min.js"></script>
         <script src="deps/chart.min.js"></script>
         <script src="deps/countUp.js"></script>
         <script src="deps/vibrant.js"></script>
-        <script defer>
-            {
-                let el = document.getElementById('100');
-                od = new Odometer({
-                    el: el,
-                    format: 'd',
-                });
-            }
-        </script>
         <script defer src="index.js"></script>
 </body>
 
