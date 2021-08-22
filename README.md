@@ -11,21 +11,12 @@ Custom overlay for osu! replays, using https://github.com/l3lackShark/gosumemory
     - Experiment with different fonts
     - Toggle sections on GameStates (replay overview, watching replay, menu)
     - Experiment with HP Section
-    - Experiment with custom replay overview screen
 
 ### Acc Section:
-
     - Experiment with pp line graph along with the SR graph for contrast 
-
-### Key Section:
-
-    - Make a cool design
-    - Dynamic colors
-
+    - Misses marked in pp graph to correlate with difficulty strains
+    
 ### UR Section:
-    - Experiment with color coding for different ranges
+    - Experiment with custom UR bar
 
-### Player data server:
-    - Compact and refactor code
-    - Try using axios library for the image downloading
-
+In the future I might do an after replay screen with all the data presented in a fancy way and other stats like the leaderboard position achieved and more player from the data (total PP, top plays...)
