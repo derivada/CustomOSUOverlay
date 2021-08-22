@@ -393,16 +393,14 @@ html {
     margin: auto 10px auto auto;
     transform: translate(0, -50px);
 
-    font-size: 15px;
-    font-weight: 900;
     width: 100px;
     height: 300px;
-    font-size: 50px;
     text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-around;
+    color: #eee;
 }
 
 .key {
@@ -410,14 +408,23 @@ html {
     height: 75px;
     margin: auto;
     box-sizing: border-box;
-    color: rgb(32, 225, 180);
-    border-radius: 10px;
-    border-width: 20px;
-    border: solid;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    box-shadow: 2px 2px 5px rgb(32, 225, 180);
+    font-size: 30px;
+}
+
+.keyCount {
+    flex-grow: 1;
+    text-align: end;
+    margin-right: 15px;
+}
+
+.verticalBar {
+    height: 90%;
+    width: 7px;
+    border-radius: 10px;
+    background-color: rgb(120, 120, 120);
 }
 
 #keysSecond {
@@ -425,7 +432,6 @@ html {
     width: 75px;
     height: 50px;
     box-sizing: border-box;
-    color: rgb(240,240,240);
     font-size: 25px;
     display: flex;
     flex-direction: column;
@@ -433,7 +439,8 @@ html {
     align-items: center;
     font-weight: 500;
 }
-#kps{
+
+#kps {
     font-size: 30px;
     font-weight: 400;
 }

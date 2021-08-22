@@ -60,11 +60,13 @@ let pp = document.getElementById("pp")
 let combo = document.getElementById("combo")
 
 // Key section  
-let xKey = document.getElementById("xKey")
-let zKey = document.getElementById("zKey")
 let x = document.getElementById("x")
 let z = document.getElementById("z")
+let xBar = document.getElementById("xBar")
+let zBar = document.getElementById("zBar")
 let kps = document.getElementById("kps")
+let unpressedKeyColor = "rgb(120, 120, 120)",
+    pressedKeyColor = "rgb(240, 240, 240)"
 
 // Player Section 
 let avatar = document.getElementById("avatar")
@@ -368,11 +370,9 @@ function updateKeys() {
 
             k1State = rawData.gameplay.keyOverlay.k1.isPressed
             if (k1State) {
-                xKey.style.backgroundColor = "#10637c"
-                xKey.style.color = "#e0e0e0"
+                xBar.style.backgroundColor = pressedKeyColor
             } else {
-                xKey.style.backgroundColor = "#e0e0e0"
-                xKey.style.color = "#10637c"
+                xBar.style.backgroundColor = unpressedKeyColor
             }
         }
         if (k1Count != rawData.gameplay.keyOverlay.k1.count) {
@@ -384,11 +384,9 @@ function updateKeys() {
         if (k2State != rawData.gameplay.keyOverlay.k2.isPressed) {
             k2State = rawData.gameplay.keyOverlay.k2.isPressed
             if (k2State) {
-                zKey.style.backgroundColor = "#10637c"
-                zKey.style.color = "#e0e0e0"
+                zBar.style.backgroundColor = pressedKeyColor
             } else {
-                zKey.style.backgroundColor = "#e0e0e0"
-                zKey.style.color = "#10637c"
+                zBar.style.backgroundColor = unpressedKeyColor
             }
         }
         if (k2Count != rawData.gameplay.keyOverlay.k2.count) {
@@ -668,6 +666,12 @@ function setCustomColors(path) {
         SRChart.data.datasets.forEach((dataset) => {
             dataset.backgroundColor = bgFunc
         })
+
+        // Key Section
+        unpressedKeyColor = getRGBAfromHEX(palette.vibrant, 0.5)
+        pressedKeyColor = getRGBAfromHEX(palette.vibrant, 1.0)
+        xBar.style.backgroundColor = unpressedKeyColor
+        zBar.style.backgroundColor = unpressedKeyColor
     })
 }
 
@@ -702,7 +706,7 @@ function getColorPalette(imgPath) {
     })
 }
 
-function getRGBAfromHEX(hexString, opacity) {
+function parseHex(hexString) {
     if (hexString.length != 7 || !hexString.startsWith("#")) {
         throw new Error("Not a valid string")
     }
@@ -713,18 +717,53 @@ function getRGBAfromHEX(hexString, opacity) {
     if (isNaN(r) || isNaN(g) || isNaN(b)) {
         throw new Error("Not a valid string")
     }
-    return `rgba(${r}, ${g}, ${b}, ${opacity}) `
+    return [r, g, b]
 }
 
-/*
-var r = document.querySelector(':root');
-var rs = getComputedStyle(r);
-console.log("Screen width:", rs.getPropertyValue('--screen-width'));
-console.log("Screen height:", rs.getPropertyValue('--screen-height'));
-console.log("Aspect ratio:", rs.getPropertyValue('--aspect-ratio'));
-console.log("Game area height:", rs.getPropertyValue('--beatmap-area-height'));
-console.log("Game area width:", rs.getPropertyValue('--beatmap-area-width'));
-console.log("Horizontal margin:", rs.getPropertyValue('--horizontal-gaps-width'));
-console.log("Upper margin:", rs.getPropertyValue('--upper-gap-width'));
-console.log("Lower margin:", rs.getPropertyValue('--lower-gap-width'));
-*/
+function getRGBfromHEX(hexString) {
+    let rgb = parseHex(hexString)
+    return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]}) `
+}
+
+function getRGBAfromHEX(hexString, opacity) {
+    let rgb = parseHex(hexString)
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${opacity}) `
+}
+
+function getHSLfromHEX(hexString) {
+    let rgb = parseHex(hexString)
+    let hsl = rgbToHsl(rgb[0], rgb[1], rgb[2])
+    console.log("HSL: " + hsl)
+}
+
+// https://gist.github.com/mjackson/5311256
+function rgbToHsl(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+
+    var max = Math.max(r, g, b),
+        min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if (max == min) {
+        h = s = 0; // achromatic
+    } else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+        switch (max) {
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
+        }
+
+        h /= 6;
+    }
+
+    return [h, s, l];
+}
