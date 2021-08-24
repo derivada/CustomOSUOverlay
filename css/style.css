@@ -26,7 +26,7 @@ html {
 
 #main {
     /* uncommented for debugging */
-    background: black;
+    /* background: black; */
     position: absolute;
     display: grid;
     margin: 0px;
@@ -388,10 +388,16 @@ html {
 
 /* Z/X keys right side display */
 #keySection {
+    /* 
+        Dark background for hiding the key overlay from osu! It is recommended to tweak this if you haven't made the key overlay from your skin transparent.
+        To do that, Ctrl+F for "input" in the skin folder and make all those pngs transparent in an image editing program.
+        The numbers will still appear, so we cover them with this background.
+    */
+    background-image: radial-gradient(farthest-side at 150px 300px, #000 0%, #000 65%,transparent 100%);
+    padding: 150px 0px 150px 50px;
     grid-row: 2;
     grid-column: 3;
     margin: auto 10px auto auto;
-    transform: translate(0, -50px);
 
     width: 100px;
     height: 300px;
